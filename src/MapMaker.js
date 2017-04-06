@@ -34,10 +34,10 @@ class MapMaker{
       let selectionTest = true;
 
       if(this.settings.statementSelectionMode == "titled"){
-        selectionTest = (!equivalenceClass.isUsedAsPremise && !equivalenceClass.isUsedAsConclusion)
+        selectionTest = (equivalenceClass.relations.length > 0 && !equivalenceClass.isUsedAsPremise && !equivalenceClass.isUsedAsConclusion)
         || !untitledTest.exec(equivalenceClass.title);
       }else if(this.settings.statementSelectionMode == "roots"){
-        selectionTest = (!equivalenceClass.isUsedAsPremise && !equivalenceClass.isUsedAsConclusion)
+        selectionTest = (equivalenceClass.relations.length > 0 && !equivalenceClass.isUsedAsPremise && !equivalenceClass.isUsedAsConclusion)
         || equivalenceClass.isUsedAsRootOfStatementTree;
       }else if(this.settings.statementSelectionMode == "statement-trees"){
         selectionTest = equivalenceClass.isUsedAsRootOfStatementTree || equivalenceClass.isUsedAsChildOfStatementTree;
