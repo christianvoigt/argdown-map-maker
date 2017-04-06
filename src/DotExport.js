@@ -25,7 +25,7 @@ class DotExport{
       }
       let label = "";
       if(this.settings.useHtmlLabels){
-        label = this.escapeQuotesForDot(node.title);
+        label = this.escapeForHtml(node.title);
         let labelArray = this.fold(label, this.settings.lineLength, true);
         label = labelArray.join('<br/>');
         label = "<<FONT FACE=\"Arial\" POINT-SIZE=\"8\"><TABLE BORDER=\"0\" CELLSPACING=\"0\"><TR><TD ALIGN=\"center\"><B>"+label+"</B></TD></TR>";
@@ -39,7 +39,7 @@ class DotExport{
           if(lastMember){
             let content = lastMember.text;
             if(content){
-              content = this.escapeQuotesForDot(content);
+              content = this.escapeForHtml(content);
               let contentArray = this.fold(content, this.settings.lineLength, true);
               content = contentArray.join('<br/>');
               label += "<TR><TD ALIGN=\"center\">"+content+"</TD></TR>";
@@ -73,8 +73,13 @@ class DotExport{
     data.dot = dot;
     return data;
   }
+  escapeForHtml(s) {
+      return s.replace(/[^0-9A-Za-z ]/g, function(c) {
+          return "&#" + c.charCodeAt(0) + ";";
+      } );
+  }
   escapeQuotesForDot(str){
-    return str.replace(/\"/g,'\\\"');
+    return str.replace(/\"/g,'\\"');
   }
 
 
