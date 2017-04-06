@@ -1,6 +1,6 @@
 {
   "name": "argdown-map-maker",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "main": "lib/src/index.js",
   "dependencies": {
@@ -23,7 +23,7 @@
     "test": "mocha --compilers js:babel-core/register --colors ./test/*.spec.js",
     "prepublish": "npm build",
     "clean": "rimraf lib/*",
-    "version:patch": "npm version patch"    
+    "version:patch": "npm version patch"
   },
   "readmeFilename": "Readme.md",
   "preferGlobal": false,
