@@ -8,7 +8,7 @@ class MapMaker{
   }
   set config(config){
     this.settings = _.defaults(config ||{}, {
-      statementSelectionMode : "roots", //options: all | titled | roots | statement-trees
+      statementSelectionMode : "roots", //options: all | titled | roots | statement-trees | with-relations
       excludeDisconnected : true
     });
   }
@@ -33,18 +33,21 @@ class MapMaker{
       let equivalenceClass = data.statements[statementKey];
       let selectionTest = true;
 
-      if(this.settings.statementSelectionMode == "titled"){
-        selectionTest = (equivalenceClass.relations.length > 0 && !equivalenceClass.isUsedAsPremise && !equivalenceClass.isUsedAsConclusion)
-        || !untitledTest.exec(equivalenceClass.title);
+      let isConnected = equivalenceClass.relations.length > 0 || equivalenceClass.isUsedAsPremise || equivalenceClass.isUsedAsConclusion;
+      let notUsedInArgumentButWithRelations = equivalenceClass.relations.length > 0 && !equivalenceClass.isUsedAsPremise && !equivalenceClass.isUsedAsConclusion;
+      
+      if(this.settings.statementSelectionMode == "all"){
+        selectionTest = true;
+      }if(this.settings.statementSelectionMode == "titled"){
+        selectionTest = notUsedInArgumentButWithRelations || !untitledTest.exec(equivalenceClass.title);
       }else if(this.settings.statementSelectionMode == "roots"){
-        selectionTest = (equivalenceClass.relations.length > 0 && !equivalenceClass.isUsedAsPremise && !equivalenceClass.isUsedAsConclusion)
-        || equivalenceClass.isUsedAsRootOfStatementTree;
+        selectionTest = notUsedInArgumentButWithRelations || equivalenceClass.isUsedAsRootOfStatementTree;
       }else if(this.settings.statementSelectionMode == "statement-trees"){
         selectionTest = equivalenceClass.isUsedAsRootOfStatementTree || equivalenceClass.isUsedAsChildOfStatementTree;
+      }else if(this.settings.statementSelectionMode == "with-relations"){
+        selectionTest = equivalenceClass.relations.length > 0;        
       }
-      let connectedTest = !this.settings.excludeDisconnected ||equivalenceClass.relations.length > 0;
-
-      if(connectedTest && selectionTest){
+      if((!this.settings.excludeDisconnected || isConnected) && selectionTest){
         let id = "n"+nodeCount;
         nodeCount++;
         let node = {type:"statement", title:statementKey, id:id};
