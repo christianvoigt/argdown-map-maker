@@ -175,7 +175,8 @@ standalone: true})
         argEl.e('arg:description', null, description);
         for(let i = 0; i < argument.pcs.length; i++){
           let statement = argument.pcs[i];
-          let lastMember = _.last(statement.members);
+          let equivalenceClass = data.statements[statement.title];
+          let lastMember = _.last(equivalenceClass.members);
           let propositionType = 'premise';
           let argmlId = statementArgMLIds[statement.title];
 
@@ -189,7 +190,7 @@ standalone: true})
           argEl.e('arg:proposition',{
             'id' : argmlId,
             'type' : propositionType
-          }).e('arg:content', null, lastMember.text).up;
+          }).e('arg:content', null, lastMember.text);
           //let equivalenceClass = data.statements[statement.title];
 
           //Hopefully the out-commented code will not be necessary in the future as ArgML will be cleaned up
