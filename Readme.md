@@ -1,12 +1,18 @@
 # Argdown Map Maker
 
-This package contains three plugins for Argdown applications:
+![Argdown](https://cdn.rawgit.com/christianvoigt/argdown-map-maker/master/argdown-mark.svg)
+
+Tools for making argument maps from Argdown documents.
+
+For more information about the Argdown argumentation syntax, visit the [Argdown repository](https://github.com/christianvoigt/argdown).
+
+This package contains three plugins for [Argdown applications](https://github.com/christianvoigt/argdown-parser):
 
   - the __MapMaker plugin__ creates graphs (nodes and edges) from Argdown data
   - the __DotExport plugin__ exports these graphs into the .dot format
   - the __ArgMLExport plugin__ exports these graphs into a variant of the graphML format, extended with informations specific to argument maps
 
-All plugins require that the Preprocessor plugin from the argdown-parser package has processed the Argdown data.
+All plugins require that the Preprocessor plugin from the [argdown-parser](https://github.com/christianvoigt/argdown-parser) package has processed the Argdown data.
 The two export plugins also require that the MapMaker plugin has processed the Argdown data.
 
 The MapMaker plugin adds a map object to the data returned from the Argdown application. This map object contains a nodes array and an edges array with all informations necessary to create an argument map.
@@ -44,3 +50,4 @@ console.log(result.argml.end({
 console.log(result.dot);
 
 ```
+For more information about how to write an application using the Argdown parser, visit the [argdown-parser repository](https://github.com/christianvoigt/argdown-parser).
