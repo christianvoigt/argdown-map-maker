@@ -47,7 +47,7 @@ class MapMaker{
       }else if(this.settings.statementSelectionMode == "with-relations"){
         selectionTest = equivalenceClass.relations.length > 0;        
       }
-      if((!this.settings.excludeDisconnected || isConnected) && selectionTest){
+      if((!this.settings.excludeDisconnected ||isConnected) && selectionTest){
         let id = "n"+nodeCount;
         nodeCount++;
         let node = {type:"statement", title:statementKey, id:id};
@@ -89,6 +89,10 @@ class MapMaker{
         if(!roles){
           roles = {premiseIn:[], conclusionIn:[]};
           statementRoles[statement.title] = roles;
+        }
+        if(statementNodes[statement.title]){
+          //argument node has a support relation to statement node
+          hasRelations = true;
         }
         if(statement.role == "premise"){
           roles.premiseIn.push(node);

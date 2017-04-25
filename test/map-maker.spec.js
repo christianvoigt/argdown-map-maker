@@ -50,4 +50,24 @@ describe("MapMaker", function() {
     expect(result.map.edges[2].from.title).to.equals("Argument 2");
     expect(result.map.edges[2].to.title).to.equals("Statement 6");
   });
+  it("selects argument if premises or conclusions are selected as statement nodes", function(){
+    mapMaker.config = {statementSelectionMode: "statement-trees"};
+    let source = `<!--Hier wird das Argument nicht richtig gezeichnet.-->
+
+[ZT]: ZT
+
+[T1]: T1
+
+<Argument 1>: Argument 1.
+
+(1) [T1]
+(2) P2
+-- Inference rule --
+(3) [ZT]`;
+    app.parse(source);
+    let result = app.run(['preprocessor','make-map']);
+
+    expect(result.map.nodes.length).to.equal(3);
+    expect(result.map.edges.length).to.equal(2);
+  });  
 });
