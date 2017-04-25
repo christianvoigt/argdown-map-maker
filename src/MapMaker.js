@@ -56,7 +56,7 @@ class MapMaker{
 
         //add all outgoing relations of each statement node
         for(let relation of equivalenceClass.relations){
-          if(relation.from == equivalenceClass){
+          if(relation.from == equivalenceClass || relation.type == "contradiction"){
             relationsForMap.push(relation);
           }
         }
@@ -97,7 +97,7 @@ class MapMaker{
         if(statement.role == "premise"){
           roles.premiseIn.push(node);
           for(let relation of equivalenceClass.relations){
-            if(relation.to == equivalenceClass){
+            if(relation.to == equivalenceClass || relation.type == "contradiction"){
               hasRelations = true;
               break;
             }
@@ -106,7 +106,7 @@ class MapMaker{
           roles.conclusionIn.push(node);
 
           for(let relation of equivalenceClass.relations){
-            if(relation.from == equivalenceClass){
+            if(relation.from == equivalenceClass || relation.type == "contradiction"){
               hasRelations = true;
               //add all outgoing relations of the argument's main conclusion, if the conclusion has not been inserted as a statement node
               //if the conclusion has been inserted as a statement node, the outgoing relations have already been added
@@ -130,7 +130,7 @@ class MapMaker{
     //One relation can be represented by multiple edges in the graph, as the same sentence (the same equivalence class) can be used in several arguments as premise or conclusion.
     //If a source/target of a relation is a statementNode, all edges, representing the relation, have to start/end at the statementNode.
     //In the next step, "implicit" support edges are added that represent the equivalence relations between statements.
-    //These will connect the different occurrences of a statement (or more precisely an "equivalence class" of statements) within the graph.
+    //These will connect the different occurrences of a statement (or more precisely the occurrences of an "equivalence class") within the graph.
     for(let relation of relationsForMap){
       let froms = []; //a list of source nodes for the edges representing the relation in the graph
       let tos = []; //a list of target nodes for the edges representing the relation in the graph
@@ -149,7 +149,7 @@ class MapMaker{
         let roles = statementRoles[relation.from.title];
         fromStatement = data.statements[relation.from.title];
         if(roles){
-          froms = roles.conclusionIn;
+          froms.push.apply(froms, roles.conclusionIn);
         }
       }else{ //push either the argument node or the statement node to the sources list
         froms.push(fromNode);
@@ -169,29 +169,50 @@ class MapMaker{
         let roles = statementRoles[relation.to.title];
         toStatement = data.statements[relation.to.title];
         if(roles){
-          tos = roles.premiseIn;
+          tos.push.apply(tos, roles.premiseIn);
         }
       }else{ //push either the argument node or the statement node to the targets list
         tos.push(toNode);
       }
 
-      //special case: both statements of a contradiction are represented as statement nodes
-      //in this case there have to be two attack relations going both ways
-      //we have to add the "reverse direction" edge here
-      if(relation.type == "contradiction" && fromNode && toNode){
-        let edgeId = 'e'+edgeCount;
-        edgeCount++;
-        map.edges.push({
-          id:edgeId,
-          from:toNode, //node
-          to:fromNode, //node
-          fromStatement: toStatement, //statement
-          toStatement: fromStatement, //statement
-          type:"attack",
-          status: "reconstructed"
-        });
-      }
+      if(relation.type == "contradiction"){
+        //special case: both statements of a contradiction are represented as statement nodes
+        //in this case there have to be two attack relations going both ways
+        //we have to add the "reverse direction" edge here
+        if(fromNode && toNode && !(fromNode instanceof Argument) && !(toNode instanceof Argument)){
+          let edgeId = 'e'+edgeCount;
+          edgeCount++;
+          map.edges.push({
+            id:edgeId,
+            from:toNode, //node
+            to:fromNode, //node
+            fromStatement: toStatement, //statement
+            toStatement: fromStatement, //statement
+            type:"attack",
+            status: "reconstructed"
+          });         
+        }
+        let fromRoles = statementRoles[relation.from.title];
+        if(fromRoles && fromRoles.premiseIn){
+          for(let argumentNode of fromRoles.premiseIn){
+            for(let to of tos){
+              let edgeId = 'e'+edgeCount;
+              edgeCount++;
+              map.edges.push({
+                id:edgeId,
+                from:to,
+                to:argumentNode,
+                fromStatement:toStatement,
+                toStatement: fromStatement,
+                type:"attack",
+                status:"reconstructed"
+              });
+            }
+          }
+        }
 
+      }
+      
       //now add an edge from each source to each target
       let edgeType = relation.type;
       if(edgeType == "contradiction"){
