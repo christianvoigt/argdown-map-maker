@@ -88,4 +88,19 @@ describe("MapMaker", function() {
     expect(result.map.nodes.length).to.equal(3);
     expect(result.map.edges.length).to.equal(2);
   });    
+it("does not add duplicate arrows for contradictions", function(){
+  mapMaker.config = {statementSelectionMode: "with-relations"};
+  let source = `<A>: A
+  >< [T2]: B
+  
+<A>
+
+(1) A
+----
+(2) [T1]: C`;
+  app.parse(source);
+  let result = app.run(['preprocessor','make-map']);
+  expect(result.map.nodes.length).to.equal(3);
+  expect(result.map.edges.length).to.equal(3);
+});    
 });

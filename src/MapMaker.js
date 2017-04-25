@@ -56,8 +56,8 @@ class MapMaker{
 
         //add all outgoing relations of each statement node
         for(let relation of equivalenceClass.relations){
-          if(relation.from == equivalenceClass){
-            relationsForMap.push(relation);
+          if(relation.from == equivalenceClass && relation.type !== "contradiction"){
+            relationsForMap.push(relation);              
           }else if(relation.type == "contradiction" && !_.includes(relationsForMap, relation)){
             relationsForMap.push(relation);
           }
