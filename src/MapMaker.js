@@ -56,7 +56,9 @@ class MapMaker{
 
         //add all outgoing relations of each statement node
         for(let relation of equivalenceClass.relations){
-          if(relation.from == equivalenceClass || relation.type == "contradiction"){
+          if(relation.from == equivalenceClass){
+            relationsForMap.push(relation);
+          }else if(relation.type == "contradiction" && !_.includes(relationsForMap, relation)){
             relationsForMap.push(relation);
           }
         }
@@ -99,21 +101,22 @@ class MapMaker{
           for(let relation of equivalenceClass.relations){
             if(relation.to == equivalenceClass || relation.type == "contradiction"){
               hasRelations = true;
-              break;
             }
           }
         }else if(statement.role == "conclusion" && statement == argument.pcs[argument.pcs.length - 1]){
           roles.conclusionIn.push(node);
 
           for(let relation of equivalenceClass.relations){
-            if(relation.from == equivalenceClass || relation.type == "contradiction"){
+            if(relation.from == equivalenceClass){
               hasRelations = true;
               //add all outgoing relations of the argument's main conclusion, if the conclusion has not been inserted as a statement node
               //if the conclusion has been inserted as a statement node, the outgoing relations have already been added
-              if(!statementNodes[statement.title]){
+              if(!statementNodes[statement.title] && (!relation.type == "contradiction" || !_.includes(relationsForMap,relation))){
                 relationsForMap.push(relation);
               }
-
+            }else if(relation.type == "contradiction" && !_.includes(relationsForMap,relation)){
+              hasRelations = true;
+              relationsForMap.push(relation);
             }
           }
         }

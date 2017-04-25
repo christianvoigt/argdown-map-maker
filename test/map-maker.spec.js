@@ -70,20 +70,22 @@ describe("MapMaker", function() {
     expect(result.map.nodes.length).to.equal(3);
     expect(result.map.edges.length).to.equal(2);
   });  
-  it("adds attack relation when statement contradictory to premiss", function(){
+  it("adds attack relation if statement is contradictory to premiss", function(){
     mapMaker.config = {statementSelectionMode: "statement-trees"};
     let source = `
 [T1]: T1
+
+[T2]: T2
 
 (1) P1
   >< [T1]
 (2) P2
 ----
-(3) C1`;
+(3) C1 
+  >< [T2]`;
     app.parse(source);
     let result = app.run(['preprocessor','make-map']);
-
-    expect(result.map.nodes.length).to.equal(2);
-    expect(result.map.edges.length).to.equal(1);
+    expect(result.map.nodes.length).to.equal(3);
+    expect(result.map.edges.length).to.equal(2);
   });    
 });
