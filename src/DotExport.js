@@ -39,8 +39,10 @@ class DotExport{
           if(lastMember){
             let content = lastMember.text;
             if(content){
-              content = this.escapeForHtml(content);
               let contentArray = this.fold(content, this.settings.lineLength, true);
+              for(let i = 0; i < contentArray.length; i++){
+                contentArray[i] = this.escapeForHtml(contentArray[i]);
+              }
               content = contentArray.join('<br/>');
               label += "<TR><TD ALIGN=\"center\">"+content+"</TD></TR>";
             }

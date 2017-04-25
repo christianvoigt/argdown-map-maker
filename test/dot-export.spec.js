@@ -11,9 +11,10 @@ let dotExport = new DotExport();
 app.addPlugin(mapMaker, "export");
 app.addPlugin(dotExport, "export");
 
-describe("ArgMLExport", function() {
+describe("DotExport", function() {
   it("sanity test", function(){
-    let source = "<Argument with a very very long title 1>\n  + [Statement with a very very long title 1]: Hello World!\n    +<Argument 2>: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.\n  -[Another Statement]: Some text\n    -<A very convincing argument>:Too complicated to explain\n  +>[And yet another statement]: Some more text\n  +<Another Argument>: Some more text";
+    let source = "<Argument with a very very long title 1>\n  + [Statement with a very very long title 1]: Hello World!\n    +<Argument 2>: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.\n  -[Äüö'quotes']: Some text\n    -<A very convincing argument>:Too complicated to explain\n  +>[And yet another statement]: Some more text\n  +<Another Argument>: Some more text";
+
     app.parse(source);
     let result = app.run(['preprocessor','export']);
     expect(result.dot).to.exist;
