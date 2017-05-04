@@ -1,5 +1,7 @@
 import {Argument} from 'argdown-parser';
 import * as _ from 'lodash';
+import {Node} from './model/Node.js';
+import {Edge} from './model/Edge.js';
 
 class MapMaker{
   constructor(config){
@@ -50,7 +52,7 @@ class MapMaker{
       if((!this.settings.excludeDisconnected ||isConnected) && selectionTest){
         let id = "n"+nodeCount;
         nodeCount++;
-        let node = {type:"statement", title:statementKey, id:id};
+        let node = new Node("statement", statementKey, id);
         statementNodes[statementKey] = node;
         map.nodes.push(node)
 
@@ -76,7 +78,7 @@ class MapMaker{
       let argument = data.arguments[argumentKey];
       let id = "n"+nodeCount;
       nodeCount++;
-      let node = {type:"argument", title:argument.title, id:id};
+      let node = new Node("argument", argument.title, id);
 
       for(let relation of argument.relations){
         hasRelations = true;
@@ -111,7 +113,7 @@ class MapMaker{
               hasRelations = true;
               //add all outgoing relations of the argument's main conclusion, if the conclusion has not been inserted as a statement node
               //if the conclusion has been inserted as a statement node, the outgoing relations have already been added
-              if(!statementNodes[statement.title] && (!relation.type == "contradiction" || !_.includes(relationsForMap,relation))){
+              if(!statementNodes[statement.title] && (!relation.type == "contradiction" ||!_.includes(relationsForMap,relation))){
                 relationsForMap.push(relation);
               }
             }else if(relation.type == "contradiction" && !_.includes(relationsForMap,relation)){
@@ -185,15 +187,16 @@ class MapMaker{
         if(fromNode && toNode && !(fromNode instanceof Argument) && !(toNode instanceof Argument)){
           let edgeId = 'e'+edgeCount;
           edgeCount++;
-          map.edges.push({
-            id:edgeId,
-            from:toNode, //node
-            to:fromNode, //node
-            fromStatement: toStatement, //statement
-            toStatement: fromStatement, //statement
-            type:"attack",
-            status: "reconstructed"
-          });         
+          let edge = new Edge({
+                      id:edgeId,
+                      from:toNode, //node
+                      to:fromNode, //node
+                      fromStatement: toStatement, //statement
+                      toStatement: fromStatement, //statement
+                      type:"attack",
+                      status: "reconstructed"
+                    });
+          map.edges.push(edge);         
         }
         let fromRoles = statementRoles[relation.from.title];
         if(fromRoles && fromRoles.premiseIn){
@@ -201,7 +204,7 @@ class MapMaker{
             for(let to of tos){
               let edgeId = 'e'+edgeCount;
               edgeCount++;
-              map.edges.push({
+              map.edges.push(new Edge({
                 id:edgeId,
                 from:to,
                 to:argumentNode,
@@ -209,7 +212,7 @@ class MapMaker{
                 toStatement: fromStatement,
                 type:"attack",
                 status:"reconstructed"
-              });
+              }));
             }
           }
         }
@@ -225,7 +228,7 @@ class MapMaker{
         for(let to of tos){
           let edgeId = 'e'+edgeCount;
           edgeCount++;
-          map.edges.push({
+          map.edges.push(new Edge({
             id:edgeId,
             from:from, //node
             to:to, //node
@@ -233,7 +236,7 @@ class MapMaker{
             toStatement: toStatement, //statement
             type:edgeType,
             status: relation.status
-          });
+          }));
         }
       }
     }
@@ -250,7 +253,7 @@ class MapMaker{
           for(let argumentNode of roles.conclusionIn){
             let edgeId = 'e'+edgeCount;
             edgeCount++;
-            map.edges.push({
+            map.edges.push(new Edge({
               id:edgeId,
               from:argumentNode, //node
               to:node, //node
@@ -258,14 +261,14 @@ class MapMaker{
               toStatement: statement, //statement
               type:"support",
               status: "reconstructed"
-            });
+            }));
           }
 
           //2) add statementNode +> premise edges
           for(let argumentNode of roles.premiseIn){
             let edgeId = 'e'+edgeCount;
             edgeCount++;
-            map.edges.push({
+            map.edges.push(new Edge({
               id:edgeId,
               from:node, //node
               to:argumentNode, //node
@@ -273,7 +276,7 @@ class MapMaker{
               toStatement: statement, //statement
               type:"support",
               status: "reconstructed"
-            });
+            }));
           }
         }
       }
