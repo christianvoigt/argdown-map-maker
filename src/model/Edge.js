@@ -34,6 +34,7 @@ class Edge{
     if(this.toStatement){
       edge.toStatement = this.toStatement.title;
     }
+    return edge;
   }
 }
 module.exports = {
