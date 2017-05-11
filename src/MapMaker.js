@@ -11,7 +11,9 @@ class MapMaker{
   set config(config){
     this.settings = _.defaults(config ||{}, {
       statementSelectionMode : "roots", //options: all | titled | roots | statement-trees | with-relations
-      excludeDisconnected : true
+      excludeDisconnected : true,
+      groupMode : "heading", //options: heading | tag | none
+      groupDepth : 2
     });
   }
   run(data){
@@ -221,10 +223,10 @@ class MapMaker{
       
       //now add an edge from each source to each target
       let edgeType = relation.type;
-      if(edgeType == "contradictory" || edgeType == "contrary"){
-        edgeType = "attack";
-      }else if(edgeType == "entails"){
-        edgeType = "support";
+      if(edgeType == 'contradictory' || edgeType == 'contrary'){
+        edgeType = 'attack';
+      }else if(edgeType == 'entails'){
+        edgeType = 'support';
       }
       for(let from of froms){
         for(let to of tos){
@@ -247,7 +249,7 @@ class MapMaker{
     //1) From all argument nodes that use p as main conclusion to statement node p
     //2) From statement node p to all arguments that use p as premise
     for(let node of map.nodes){
-      if(node.type == "statement"){
+      if(node.type == 'statement'){
         let roles = statementRoles[node.title];
         let statement = data.statements[node.title];
         if(roles){
@@ -261,8 +263,8 @@ class MapMaker{
               to:node, //node
               fromStatement: statement, //statement
               toStatement: statement, //statement
-              type:"support",
-              status: "reconstructed"
+              type:'support',
+              status: 'reconstructed'
             }));
           }
 
@@ -276,12 +278,96 @@ class MapMaker{
               to:argumentNode, //node
               fromStatement: statement, //statement
               toStatement: statement, //statement
-              type:"support",
-              status: "reconstructed"
+              type:'support',
+              status: 'reconstructed'
             }));
           }
         }
       }
+    }
+    
+    //groups
+    //groups are added to map.nodes
+    //nodes contained within a group are removed from map.nodes and pushed into group.nodes instead.
+    //groups within groups are also pushed to group.nodes.
+    if(this.settings.groupMode && this.settings.groupMode != 'none'){
+      const nodeList = map.nodes;
+      map.nodes = [];
+      
+      const groupDict = {};
+      const groupList = [];
+      
+      let maxGroupLevel = 0;
+      
+      for(let node of nodeList){
+        let section = null;
+        if(node.type == "argument"){
+          let argument = data.arguments[node.title];
+          if(argument.section){
+            section = argument.section;
+          }else{
+            for(let member of argument.descriptions){
+              if(member.section){
+                section = member.section;
+                break;
+              }
+            }            
+          }
+        }else{
+          let equivalenceClass = data.statements[node.title];
+          for(let member of equivalenceClass.members){
+            if(member.section){
+              section = member.section;
+              break;
+            }
+          }
+        }
+        
+        if(section){
+          if(maxGroupLevel < section.level){
+            maxGroupLevel = section.level;
+          }
+          let group = groupDict[section.id];
+          if(!group){
+            group = {
+              type: "group",
+              id:section.id, 
+              title: section.title, 
+              level: section.level, 
+              nodes: []
+            };
+            if(section.parent){
+              group.parent = section.parent.id;
+            }
+            groupDict[section.id] = group;
+            groupList.push(group);
+          }
+          group.nodes.push(node);
+        }else{
+          map.nodes.push(node);
+        }
+      }
+      
+      //normalize group levels
+      const minGroupLevel = maxGroupLevel - this.settings.groupDepth + 1;
+      for(let group of groupList){
+        group.level = group.level - minGroupLevel;
+      }
+      for(let group of groupList){
+        if(group.level < 0){
+          for(let node of group.nodes){
+            map.nodes.push(node);
+          }
+        }else{
+          let parentGroup = groupDict[group.parent];
+          if(parentGroup && parentGroup.level >= 0){
+            parentGroup.nodes.push(group);
+          }else{
+            map.nodes.push(group);
+          }          
+        }
+      }
+      
     }
 
     return map;

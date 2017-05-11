@@ -103,4 +103,42 @@ it("does not add duplicate arrows for contradictions", function(){
   expect(result.map.nodes.length).to.equal(3);
   expect(result.map.edges.length).to.equal(3);
 });    
+it("can create groups from sections", function(){
+  let source = `# Section 1
+  
+  [A]: text
+    + [B]
+  
+  ## Section 2
+  
+  [B]: text
+    - <C>
+  
+  ### Section 3
+  
+  <C>: text
+  
+  `;
+  app.parse(source);
+  let result = app.run(['preprocessor','make-map']);
+  //console.log(JSON.stringify(result.map, null, 2));
+  //app.parser.logAst(result.ast);
+  //preprocessor.logRelations(result);
+  //console.log(result.arguments);
+
+  expect(result.map.nodes.length).to.equal(2);
+  expect(result.map.nodes[0].title).to.equal("A");
+  expect(result.map.nodes[1].title).to.equal("Section 2");
+  expect(result.map.edges.length).to.equal(2);
+  
+  let section2 = result.map.nodes[1];
+  expect(section2.nodes.length).to.equal(2);
+  expect(section2.nodes[0].title).to.equal("B");
+
+  let section3 = section2.nodes[1];
+  expect(section3.title).to.equal("Section 3");
+  expect(section3.nodes.length).to.equal(1);
+  expect(section3.nodes[0].title).to.equal("C");
+
+});
 });

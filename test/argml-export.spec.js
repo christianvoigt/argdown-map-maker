@@ -6,7 +6,7 @@ import fs from 'fs';
 let app = new ArgdownApplication();
 let preprocessor = new ArgdownPreprocessor();
 app.addPlugin(preprocessor,'preprocessor');
-let mapMaker = new MapMaker();
+let mapMaker = new MapMaker({groupMode:'none'});
 let argMLExport = new ArgMLExport();
 app.addPlugin(mapMaker, "export-argml");
 app.addPlugin(argMLExport, "export-argml");

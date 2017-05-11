@@ -6,7 +6,8 @@ class DotExport{
       useHtmlLabels : true,
       onlyTitlesInHtmlLabels: false,
       graphname: 'Argument Map',
-      lineLength: 25
+      lineLength: 25,
+      groupColors: ["#DADADA","#BABABA","#AAAAAA"]
     });
   }
   constructor(config){
@@ -14,49 +15,11 @@ class DotExport{
     this.config = config;
   }
   run(data){
+    this.groupCount = 0;
     let dot = "digraph \""+this.settings.graphname+"\" {\n\n";
 
     for(let node of data.map.nodes){
-      let element;
-      if(node.type == "statement"){
-        element = data.statements[node.title];
-      }else{
-        element = data.arguments[node.title];
-      }
-      let label = "";
-      if(this.settings.useHtmlLabels){
-        label = this.escapeForHtml(node.title);
-        let labelArray = this.fold(label, this.settings.lineLength, true);
-        label = labelArray.join('<br/>');
-        label = "<<FONT FACE=\"Arial\" POINT-SIZE=\"8\"><TABLE BORDER=\"0\" CELLSPACING=\"0\"><TR><TD ALIGN=\"center\"><B>"+label+"</B></TD></TR>";
-        if(!this.settings.onlyTitlesInHtmlLabels){
-          let lastMember;
-          if(node.type == "statement"){
-            lastMember = _.last(element.members);
-          }else{
-            lastMember = _.last(element.descriptions);
-          }
-          if(lastMember){
-            let content = lastMember.text;
-            if(content){
-              let contentArray = this.fold(content, this.settings.lineLength, true);
-              for(let i = 0; i < contentArray.length; i++){
-                contentArray[i] = this.escapeForHtml(contentArray[i]);
-              }
-              content = contentArray.join('<br/>');
-              label += "<TR><TD ALIGN=\"center\">"+content+"</TD></TR>";
-            }
-          }
-        }
-        label += "</TABLE></FONT>>";
-      }else{
-        label = "\""+this.escapeQuotesForDot(node.title)+"\"";
-      }
-      if(node.type == "statement"){
-        dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded,bold\", color=\"#63AEF2\", fillcolor=\"white\", labelfontcolor=\"white\", type=\""+node.type+"\"];\n";
-      }else{
-        dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded\", fillcolor=\"#63AEF2\",  type=\""+node.type+"\"];\n";
-      }
+      dot += this.exportNodesRecursive(node, data);
     }
 
     dot +="\n\n";
@@ -74,6 +37,83 @@ class DotExport{
 
     data.dot = dot;
     return data;
+  }
+  exportNodesRecursive(node, data){
+    let dot = "";
+    let element;
+    if(node.type == "statement"){
+      element = data.statements[node.title];
+    }else if(node.type == "argument"){
+      element = data.arguments[node.title];
+    }else if(node.type == "group"){
+      this.groupCount++;
+      let dotGroupId = "cluster_"+this.groupCount;
+      let groupLabel = node.title;
+      if(this.settings.useHtmlLabels){
+        groupLabel = this.foldAndEscape(groupLabel);        
+        groupLabel = "<<FONT FACE=\"Arial\" POINT-SIZE=\"10\">"+groupLabel+"</FONT>>";
+      }else{
+        groupLabel = "\""+this.escapeQuotesForDot(groupLabel)+"\"";
+      }
+      let groupColor = "#CCCCCC";
+      if(this.settings.groupColors && this.settings.groupColors.length > 0){
+        if(this.settings.groupColors.length >= node.level){
+          groupColor = this.settings.groupColors[node.level];                  
+        }else{
+          groupColor = this.settings.groupColors[this.settings.groupColors.length - 1];
+        }
+      }
+      
+      dot += "\nsubgraph "+dotGroupId+" {\n";
+      dot += "  label = "+groupLabel+";\n";
+      dot += "  color = \""+groupColor+"\";\n";
+      dot += "  style = filled;\n\n";
+      
+      for(let child of node.nodes){
+        dot += this.exportNodesRecursive(child, data);
+      }
+      dot += "\n}\n\n";
+      return dot;
+    }
+    
+    let label = "";
+    if(this.settings.useHtmlLabels){
+      label = this.foldAndEscape(node.title);
+      label = "<<FONT FACE=\"Arial\" POINT-SIZE=\"8\"><TABLE BORDER=\"0\" CELLSPACING=\"0\"><TR><TD ALIGN=\"center\"><B>"+label+"</B></TD></TR>";
+      if(!this.settings.onlyTitlesInHtmlLabels){
+        let lastMember;
+        if(node.type == "statement"){
+          lastMember = _.last(element.members);
+        }else{
+          lastMember = _.last(element.descriptions);
+        }
+        if(lastMember){
+          let content = lastMember.text;
+          if(content){
+            content = this.foldAndEscape(content);
+            label += "<TR><TD ALIGN=\"center\">"+content+"</TD></TR>";
+          }
+        }
+      }
+      label += "</TABLE></FONT>>";
+    }else{
+      label = "\""+this.escapeQuotesForDot(node.title)+"\"";
+    }
+    if(node.type == "statement"){
+      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded,bold\", color=\"#63AEF2\", fillcolor=\"white\", labelfontcolor=\"white\", type=\""+node.type+"\"];\n";
+    }else{
+      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded\", fillcolor=\"#63AEF2\",  type=\""+node.type+"\"];\n";
+    }
+    
+    
+    return dot;
+  }
+  foldAndEscape(str){
+    let strArray = this.fold(str, this.settings.lineLength, true);
+    for(let i = 0; i < strArray.length; i++){
+      strArray[i] = this.escapeForHtml(strArray[i]);
+    }
+    return strArray.join('<br/>');
   }
   escapeForHtml(s) {
       return s.replace(/[^0-9A-Za-z ]/g, function(c) {

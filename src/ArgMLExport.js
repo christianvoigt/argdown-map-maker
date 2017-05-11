@@ -72,7 +72,7 @@ standalone: true})
             node.argmlId = this.getId();
             statementArgMLIds[node.title] = node.argmlId;
         }
-      }else{
+      }else if(node.type == "argument"){
         node.argmlId = argumentArgMLIds[node.title];
         if(!node.argmlId){
             node.argmlId = this.getId();
