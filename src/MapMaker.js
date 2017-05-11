@@ -58,9 +58,9 @@ class MapMaker{
 
         //add all outgoing relations of each statement node
         for(let relation of equivalenceClass.relations){
-          if(relation.from == equivalenceClass && relation.type !== "contradiction"){
+          if(relation.from == equivalenceClass && relation.type !== "contradictory"){
             relationsForMap.push(relation);              
-          }else if(relation.type == "contradiction" && !_.includes(relationsForMap, relation)){
+          }else if(relation.type == "contradictory" && !_.includes(relationsForMap, relation)){
             relationsForMap.push(relation);
           }
         }
@@ -101,7 +101,7 @@ class MapMaker{
         if(statement.role == "premise"){
           roles.premiseIn.push(node);
           for(let relation of equivalenceClass.relations){
-            if(relation.to == equivalenceClass || relation.type == "contradiction"){
+            if(relation.to == equivalenceClass || relation.type == "contradictory"){
               hasRelations = true;
             }
           }
@@ -113,10 +113,10 @@ class MapMaker{
               hasRelations = true;
               //add all outgoing relations of the argument's main conclusion, if the conclusion has not been inserted as a statement node
               //if the conclusion has been inserted as a statement node, the outgoing relations have already been added
-              if(!statementNodes[statement.title] && (!relation.type == "contradiction" ||!_.includes(relationsForMap,relation))){
+              if(!statementNodes[statement.title] && (!relation.type == "contradictory" ||!_.includes(relationsForMap,relation))){
                 relationsForMap.push(relation);
               }
-            }else if(relation.type == "contradiction" && !_.includes(relationsForMap,relation)){
+            }else if(relation.type == "contradictory" && !_.includes(relationsForMap,relation)){
               hasRelations = true;
               relationsForMap.push(relation);
             }
@@ -180,8 +180,8 @@ class MapMaker{
         tos.push(toNode);
       }
 
-      if(relation.type == "contradiction"){
-        //special case: both statements of a contradiction are represented as statement nodes
+      if(relation.type == "contradictory"){
+        //special case: both statements of a contradictory are represented as statement nodes
         //in this case there have to be two attack relations going both ways
         //we have to add the "reverse direction" edge here
         if(fromNode && toNode && !(fromNode instanceof Argument) && !(toNode instanceof Argument)){
@@ -221,8 +221,10 @@ class MapMaker{
       
       //now add an edge from each source to each target
       let edgeType = relation.type;
-      if(edgeType == "contradiction"){
+      if(edgeType == "contradictory" || edgeType == "contrary"){
         edgeType = "attack";
+      }else if(edgeType == "entails"){
+        edgeType = "support";
       }
       for(let from of froms){
         for(let to of tos){
