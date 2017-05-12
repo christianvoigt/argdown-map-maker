@@ -117,7 +117,7 @@ class DotExport{
     let label = "";
     if(this.settings.useHtmlLabels){
       label += "<<FONT FACE=\"Arial\" POINT-SIZE=\"8\"><TABLE BORDER=\"0\" CELLSPACING=\"0\">";
-      if(!_.isEmpty(title) && !title.startsWith("Untitled")){
+      if(!_.isEmpty(title) && (_.isEmpty(text) || !title.startsWith("Untitled"))){
           let titleLabel = this.foldAndEscape(title);
           titleLabel = "<TR><TD ALIGN=\"center\"><B>"+titleLabel+"</B></TD></TR>";
           label += titleLabel;
