@@ -124,7 +124,7 @@ class DotExport{
       }
       if(!_.isEmpty(text)){
         let textLabel = this.foldAndEscape(text);
-        textLabel = "<TR><TD ALIGN=\"center\">"+text+"</TD></TR>";
+        textLabel = "<TR><TD ALIGN=\"center\">"+textLabel+"</TD></TR>";
         label += textLabel;
       }
       label += "</TABLE></FONT>>";
