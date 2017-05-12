@@ -7,7 +7,7 @@ class DotExport{
       graphname: 'Argument Map',
       lineLength: 25,
       groupColors: ["#DADADA","#BABABA","#AAAAAA"],
-      rankDir: 'TB',
+      rankDir: 'BT', //BT | TB | LR | RL
       argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
       statementLabelMode: 'hide-untitled', //hide-untitled | title | text
     });
@@ -20,7 +20,7 @@ class DotExport{
     this.groupCount = 0;
     let dot = "digraph \""+this.settings.graphname+"\" {\n\n";
     if(this.settings.rankDir){
-      dot += "rankDir = "+this.settings.rankDir+";\n";
+      dot += "rankdir = \""+this.settings.rankDir+"\";\n";
     }
 
     for(let node of data.map.nodes){

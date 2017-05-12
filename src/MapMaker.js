@@ -223,7 +223,7 @@ class MapMaker{
       
       //now add an edge from each source to each target
       let edgeType = relation.type;
-      if(edgeType == 'contradictory' || edgeType == 'contrary'){
+      if(edgeType == 'contradictory' ||edgeType == 'contrary'){
         edgeType = 'attack';
       }else if(edgeType == 'entails'){
         edgeType = 'support';
