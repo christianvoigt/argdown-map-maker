@@ -4,10 +4,12 @@ class DotExport{
   set config(config){
     this.settings = _.defaults(config ||{}, {
       useHtmlLabels : true,
-      onlyTitlesInHtmlLabels: false,
       graphname: 'Argument Map',
       lineLength: 25,
-      groupColors: ["#DADADA","#BABABA","#AAAAAA"]
+      groupColors: ["#DADADA","#BABABA","#AAAAAA"],
+      rankDir: 'TB',
+      argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
+      statementLabelMode: 'hide-untitled', //hide-untitled | title | text
     });
   }
   constructor(config){
@@ -17,6 +19,9 @@ class DotExport{
   run(data){
     this.groupCount = 0;
     let dot = "digraph \""+this.settings.graphname+"\" {\n\n";
+    if(this.settings.rankDir){
+      dot += "rankDir = "+this.settings.rankDir+";\n";
+    }
 
     for(let node of data.map.nodes){
       dot += this.exportNodesRecursive(node, data);
@@ -76,37 +81,57 @@ class DotExport{
       return dot;
     }
     
+    let title = node.title;
+    let text = null;
+    let label = "";
+    if(node.type == "argument"){
+      let lastDescription = _.last(element.descriptions);
+      if(lastDescription){
+        text = lastDescription.text;        
+      }
+      if(this.settings.argumentLabelMode == 'hide-untitled'){
+        label = this.getLabel(title, text);        
+      }else if(this.settings.argumentLabelMode == 'title'){
+        label = this.getLabel(title, null);
+      }else{
+        label = this.getLabel(null, text);
+      }
+      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded\", fillcolor=\"#63AEF2\",  type=\""+node.type+"\"];\n";
+    }else if(node.type == "statement"){
+      let lastMember = _.last(element.members);
+      if(lastMember){
+        text = lastMember.text;
+      }
+      if(this.settings.statementLabelMode == 'hide-untitled'){
+        label = this.getLabel(title, text);        
+      }else if(this.settings.statementLabelMode == 'title'){
+        label = this.getLabel(title, null);
+      }else{
+        label = this.getLabel(null, text);
+      }      
+      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded,bold\", color=\"#63AEF2\", fillcolor=\"white\", labelfontcolor=\"white\", type=\""+node.type+"\"];\n";
+    }        
+    return dot;
+  }
+  getLabel(title, text){
     let label = "";
     if(this.settings.useHtmlLabels){
-      label = this.foldAndEscape(node.title);
-      label = "<<FONT FACE=\"Arial\" POINT-SIZE=\"8\"><TABLE BORDER=\"0\" CELLSPACING=\"0\"><TR><TD ALIGN=\"center\"><B>"+label+"</B></TD></TR>";
-      if(!this.settings.onlyTitlesInHtmlLabels){
-        let lastMember;
-        if(node.type == "statement"){
-          lastMember = _.last(element.members);
-        }else{
-          lastMember = _.last(element.descriptions);
-        }
-        if(lastMember){
-          let content = lastMember.text;
-          if(content){
-            content = this.foldAndEscape(content);
-            label += "<TR><TD ALIGN=\"center\">"+content+"</TD></TR>";
-          }
-        }
+      label += "<<FONT FACE=\"Arial\" POINT-SIZE=\"8\"><TABLE BORDER=\"0\" CELLSPACING=\"0\">";
+      if(!_.isEmpty(title) && !title.startsWith("Untitled")){
+          let titleLabel = this.foldAndEscape(title);
+          titleLabel = "<TR><TD ALIGN=\"center\"><B>"+titleLabel+"</B></TD></TR>";
+          label += titleLabel;
+      }
+      if(!_.isEmpty(text)){
+        let textLabel = this.foldAndEscape(text);
+        textLabel = "<TR><TD ALIGN=\"center\">"+text+"</TD></TR>";
+        label += textLabel;
       }
       label += "</TABLE></FONT>>";
     }else{
-      label = "\""+this.escapeQuotesForDot(node.title)+"\"";
-    }
-    if(node.type == "statement"){
-      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded,bold\", color=\"#63AEF2\", fillcolor=\"white\", labelfontcolor=\"white\", type=\""+node.type+"\"];\n";
-    }else{
-      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded\", fillcolor=\"#63AEF2\",  type=\""+node.type+"\"];\n";
-    }
-    
-    
-    return dot;
+      label = "\""+this.escapeQuotesForDot(title)+"\"";
+    }    
+    return label;
   }
   foldAndEscape(str){
     let strArray = this.fold(str, this.settings.lineLength, true);
