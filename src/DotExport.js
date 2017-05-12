@@ -72,12 +72,12 @@ class DotExport{
       dot += "\nsubgraph "+dotGroupId+" {\n";
       dot += "  label = "+groupLabel+";\n";
       dot += "  color = \""+groupColor+"\";\n";
-      dot += "  style = filled;\n\n";
+      dot += "  style = filled;\n";
       let labelloc = "t"
       if(this.settings.rankDir == "BT"){
         labelloc = "b";
       }
-      dot += " labelloc = \""+labelloc+"\";";
+      dot += " labelloc = \""+labelloc+"\";\n\n";
       
       for(let child of node.nodes){
         dot += this.exportNodesRecursive(child, data);
