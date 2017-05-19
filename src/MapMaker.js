@@ -13,7 +13,8 @@ class MapMaker{
       statementSelectionMode : "roots", //options: all | titled | roots | statement-trees | with-relations
       excludeDisconnected : true,
       groupMode : "heading", //options: heading | tag | none
-      groupDepth : 2
+      groupDepth : 2,
+      addNodeText : true
     });
   }
   run(data){
@@ -55,6 +56,12 @@ class MapMaker{
         let id = "n"+nodeCount;
         nodeCount++;
         let node = new Node("statement", statementKey, id);
+        if(this.settings.addNodeText){
+          const lastMember = _.last(equivalenceClass.members);
+          if(lastMember){
+            node.text = lastMember.text;            
+          }
+        }
         statementNodes[statementKey] = node;
         map.nodes.push(node)
 
@@ -81,6 +88,12 @@ class MapMaker{
       let id = "n"+nodeCount;
       nodeCount++;
       let node = new Node("argument", argument.title, id);
+      if(this.settings.addNodeText){
+        const lastMember = _.last(argument.descriptions);
+        if(lastMember){
+          node.text = lastMember.text;          
+        }
+      }
 
       for(let relation of argument.relations){
         hasRelations = true;

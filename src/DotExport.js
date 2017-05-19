@@ -45,12 +45,7 @@ class DotExport{
   }
   exportNodesRecursive(node, data){
     let dot = "";
-    let element;
-    if(node.type == "statement"){
-      element = data.statements[node.title];
-    }else if(node.type == "argument"){
-      element = data.arguments[node.title];
-    }else if(node.type == "group"){
+    if(node.type == "group"){
       this.groupCount++;
       let dotGroupId = "cluster_"+this.groupCount;
       let groupLabel = node.title;
@@ -87,13 +82,9 @@ class DotExport{
     }
     
     let title = node.title;
-    let text = null;
+    let text = node.text;
     let label = "";
     if(node.type == "argument"){
-      let lastDescription = _.last(element.descriptions);
-      if(lastDescription){
-        text = lastDescription.text;        
-      }
       if(this.settings.argumentLabelMode == 'hide-untitled'){
         label = this.getLabel(title, text);        
       }else if(this.settings.argumentLabelMode == 'title'){
@@ -103,10 +94,6 @@ class DotExport{
       }
       dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded\", fillcolor=\"#63AEF2\",  type=\""+node.type+"\"];\n";
     }else if(node.type == "statement"){
-      let lastMember = _.last(element.members);
-      if(lastMember){
-        text = lastMember.text;
-      }
       if(this.settings.statementLabelMode == 'hide-untitled'){
         label = this.getLabel(title, text);        
       }else if(this.settings.statementLabelMode == 'title'){
