@@ -15,6 +15,14 @@ class ArgMLExport{
     this.config = config;
   }
   run(data){
+    if(data.config){
+      if(data.config.argml){
+        this.config = data.config.argml;
+      }else if(data.config.ArgMLExport){
+        this.config = data.config.ArgMLExport;
+      }
+    }
+    
     let argml = builder.create('graphml',{version: '1.0',
 encoding: 'UTF-8',
 standalone: true})

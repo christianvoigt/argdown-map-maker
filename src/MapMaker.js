@@ -18,6 +18,14 @@ class MapMaker{
     });
   }
   run(data){
+    if(data.config){
+      if(data.config.map){
+        this.config = data.config.map;
+      }else if(data.config.MapMaker){
+        this.config = data.config.MapMaker;
+      }
+    }
+
     data.map = this.makeMap(data);
     return data;
   }
