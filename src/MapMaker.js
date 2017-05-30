@@ -9,13 +9,17 @@ class MapMaker{
     this.config = config;
   }
   set config(config){
-    this.settings = _.defaults(config ||{}, {
-      statementSelectionMode : "roots", //options: all | titled | roots | statement-trees | with-relations
-      excludeDisconnected : true,
-      groupMode : "heading", //options: heading | tag | none
-      groupDepth : 2,
-      addNodeText : true
-    });
+    let previousSettings = this.settings;
+    if(!previousSettings){
+      previousSettings = {
+        statementSelectionMode : "roots", //options: all | titled | roots | statement-trees | with-relations
+        excludeDisconnected : true,
+        groupMode : "heading", //options: heading | tag | none
+        groupDepth : 2,
+        addNodeText : true
+      }
+    }
+    this.settings = _.defaultsDeep({}, config, previousSettings);
   }
   run(data){
     if(data.config){

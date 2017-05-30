@@ -2,20 +2,24 @@ import * as _ from 'lodash';
 
 class DotExport{
   set config(config){
-    this.settings = _.defaults(config ||{}, {
-      useHtmlLabels : true,
-      graphname: 'Argument Map',
-      lineLength: 25,
-      groupColors: ["#DADADA","#BABABA","#AAAAAA"],
-      graphVizSettings: {
-        rankDir: 'BT', //BT | TB | LR | RL
-        concentrate: 'true',
-        ratio: 'fill',
-        size: '10,10'
-      },
-      argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
-      statementLabelMode: 'hide-untitled', //hide-untitled | title | text
-    });
+    let previousSettings = this.settings;
+    if(!previousSettings){
+      previousSettings = {
+        useHtmlLabels : true,
+        graphname: 'Argument Map',
+        lineLength: 25,
+        groupColors: ["#DADADA","#BABABA","#AAAAAA"],
+        graphVizSettings: {
+          rankDir: 'BT', //BT | TB | LR | RL
+          concentrate: 'true',
+          ratio: 'fill',
+          size: '10,10'
+        },
+        argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
+        statementLabelMode: 'hide-untitled', //hide-untitled | title | text
+      }
+    }
+    this.settings = _.defaultsDeep({}, config, previousSettings);
   }
   constructor(config){
     this.name = "DotExport";

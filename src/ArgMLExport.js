@@ -6,9 +6,13 @@ var chance = new Chance();
 
 class ArgMLExport{
   set config(config){
-    this.settings = _.defaults(config ||{}, {
-      convertToString: true
-    });
+    let previousSettings = this.settings;
+    if(!previousSettings){
+      previousSettings = {
+        convertToString: true
+      };
+    }
+    this.settings = _.defaultsDeep({}, config, previousSettings);
   }
   constructor(config){
     this.name = "ArgMLExport";
