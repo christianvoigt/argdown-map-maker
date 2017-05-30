@@ -17,6 +17,7 @@ class DotExport{
         },
         argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
         statementLabelMode: 'hide-untitled', //hide-untitled | title | text
+        colorNodesByFirstTag: true
       }
     }
     this.settings = _.defaultsDeep({}, config, previousSettings);
@@ -105,6 +106,14 @@ class DotExport{
     let title = node.title;
     let text = node.text;
     let label = "";
+    let color = "#63AEF2";
+    if(this.settings.colorNodesByFirstTag && node.tags && data.config && data.config.tags){
+      const tag = node.tags[0];
+      let tagData = data.config.tags[tag];
+      if(tagData && tagData.color){
+        color = tagData.color;
+      }
+    }
     if(node.type == "argument"){
       if(this.settings.argumentLabelMode == 'hide-untitled'){
         label = this.getLabel(title, text);        
@@ -113,7 +122,7 @@ class DotExport{
       }else{
         label = this.getLabel(null, text);
       }
-      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded\", fillcolor=\"#63AEF2\",  type=\""+node.type+"\"];\n";
+      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded\", fillcolor=\""+color+"\",  type=\""+node.type+"\"];\n";
     }else if(node.type == "statement"){
       if(this.settings.statementLabelMode == 'hide-untitled'){
         label = this.getLabel(title, text);        
@@ -122,7 +131,7 @@ class DotExport{
       }else{
         label = this.getLabel(null, text);
       }      
-      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded,bold\", color=\"#63AEF2\", fillcolor=\"white\", labelfontcolor=\"white\", type=\""+node.type+"\"];\n";
+      dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded,bold\", color=\""+color+"\", fillcolor=\"white\", labelfontcolor=\"white\", type=\""+node.type+"\"];\n";
     }        
     return dot;
   }

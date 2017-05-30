@@ -16,7 +16,8 @@ class MapMaker{
         excludeDisconnected : true,
         groupMode : "heading", //options: heading | tag | none
         groupDepth : 2,
-        addNodeText : true
+        addNodeText : true,
+        addTags : true
       }
     }
     this.settings = _.defaultsDeep({}, config, previousSettings);
@@ -74,6 +75,9 @@ class MapMaker{
             node.text = lastMember.text;            
           }
         }
+        if(this.settings.addTags && equivalenceClass.tags){
+          node.tags = equivalenceClass.tags;
+        }
         statementNodes[statementKey] = node;
         map.nodes.push(node)
 
@@ -105,6 +109,9 @@ class MapMaker{
         if(lastMember){
           node.text = lastMember.text;          
         }
+      }
+      if(this.settings.addTags && argument.tags){
+        node.tags = argument.tags;
       }
 
       for(let relation of argument.relations){
