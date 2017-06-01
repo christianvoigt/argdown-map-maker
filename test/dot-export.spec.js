@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import {ArgdownApplication, ArgdownPreprocessor} from 'argdown-parser';
+import {ArgdownApplication, ModelPlugin} from 'argdown-parser';
 import {MapMaker, DotExport} from '../src/index.js';
 
 
 let app = new ArgdownApplication();
-let preprocessor = new ArgdownPreprocessor();
-app.addPlugin(preprocessor,'preprocessor');
+let modelPlugin = new ModelPlugin();
+app.addPlugin(modelPlugin,'build-model');
 let mapMaker = new MapMaker();
 let dotExport = new DotExport();
 app.addPlugin(mapMaker, "export");
@@ -37,7 +37,7 @@ describe("DotExport", function() {
     `;
 
     app.parse(source);
-    let result = app.run(['preprocessor','export']);
+    let result = app.run(['build-model','export']);
     expect(result.dot).to.exist;
   });
 });

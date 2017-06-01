@@ -1,10 +1,10 @@
 import { expect } from 'chai';
-import {ArgdownApplication, ArgdownPreprocessor} from 'argdown-parser';
+import {ArgdownApplication, ModelPlugin} from 'argdown-parser';
 import {MapMaker} from '../src/index.js';
 
 let app = new ArgdownApplication();
-let preprocessor = new ArgdownPreprocessor();
-app.addPlugin(preprocessor,'preprocessor');
+let modelPlugin = new ModelPlugin();
+app.addPlugin(modelPlugin,'build-model');
 let mapMaker = new MapMaker({statementSelectionMode:"all"});
 app.addPlugin(mapMaker, "make-map");
 
@@ -12,7 +12,7 @@ describe("MapMaker", function() {
   it("can create map from one statement and two argument definitions", function(){
     let source = "<Argument 1>\n  + [Statement 1]: Hello World!\n    +<Argument 2>: Description";
     app.parse(source);
-    let result = app.run(['preprocessor','make-map']);
+    let result = app.run(['build-model','make-map']);
     //console.log(JSON.stringify(result.map, null, 2));
     //app.parser.logAst(result.ast);
     //preprocessor.logRelations(result);
@@ -29,7 +29,7 @@ describe("MapMaker", function() {
     let source = "<Argument 1>\n\n  (1)[Statement 1]: A\n  (2)[Statement 2]: B\n  ----\n  (3)[Statement 2]: C"+
     "\n\n<Argument 2>\n\n  (1)[Statement 4]: A\n  (2)[Statement 5]: B\n  ----\n  (3)[Statement 6]: C\n  ->[Statement 1]";
     app.parse(source);
-    let result = app.run(['preprocessor','make-map']);
+    let result = app.run(['build-model','make-map']);
     //console.log(JSON.stringify(result.map, null, 2));
     //app.parser.logAst(result.ast);
     //preprocessor.logRelations(result);
@@ -65,7 +65,7 @@ describe("MapMaker", function() {
 -- Inference rule --
 (3) [ZT]`;
     app.parse(source);
-    let result = app.run(['preprocessor','make-map']);
+    let result = app.run(['build-model','make-map']);
 
     expect(result.map.nodes.length).to.equal(3);
     expect(result.map.edges.length).to.equal(2);
@@ -84,7 +84,7 @@ describe("MapMaker", function() {
 (3) C1 
   >< [T2]`;
     app.parse(source);
-    let result = app.run(['preprocessor','make-map']);
+    let result = app.run(['build-model','make-map']);
     expect(result.map.nodes.length).to.equal(3);
     expect(result.map.edges.length).to.equal(2);
   });    
@@ -99,7 +99,7 @@ it("does not add duplicate arrows for contradictions", function(){
 ----
 (2) [T1]: C`;
   app.parse(source);
-  let result = app.run(['preprocessor','make-map']);
+  let result = app.run(['build-model','make-map']);
   expect(result.map.nodes.length).to.equal(3);
   expect(result.map.edges.length).to.equal(3);
 });    
@@ -120,7 +120,7 @@ it("can create groups from sections", function(){
   
   `;
   app.parse(source);
-  let result = app.run(['preprocessor','make-map']);
+  let result = app.run(['build-model','make-map']);
   //console.log(JSON.stringify(result.map, null, 2));
   //app.parser.logAst(result.ast);
   //preprocessor.logRelations(result);
