@@ -17,7 +17,7 @@ class DotExport{
         },
         argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
         statementLabelMode: 'hide-untitled', //hide-untitled | title | text
-        colorNodesByFirstTag: true
+        colorNodesByTag: true
       }
     }
     this.settings = _.defaultsDeep({}, config, previousSettings);
@@ -107,12 +107,12 @@ class DotExport{
     let text = node.text;
     let label = "";
     let color = "#63AEF2";
-    if(this.settings.colorNodesByFirstTag && node.tags && data.config && data.config.tags){
+    if(this.settings.colorNodesByTag && node.tags && data.tagsDictionary){
       const tag = node.tags[0];
-      let tagData = data.config.tags[tag];
+      let tagData = data.tagsDictionary[tag];
       if(tagData && tagData.color){
         color = tagData.color;
-      }
+      }        
     }
     if(node.type == "argument"){
       if(this.settings.argumentLabelMode == 'hide-untitled'){

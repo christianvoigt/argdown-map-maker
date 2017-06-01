@@ -75,8 +75,8 @@ class MapMaker{
             node.text = lastMember.text;            
           }
         }
-        if(this.settings.addTags && equivalenceClass.tags){
-          node.tags = equivalenceClass.tags;
+        if(this.settings.addTags && equivalenceClass.sortedTags){
+          node.tags = equivalenceClass.sortedTags;
         }
         statementNodes[statementKey] = node;
         map.nodes.push(node)
@@ -110,8 +110,8 @@ class MapMaker{
           node.text = lastMember.text;          
         }
       }
-      if(this.settings.addTags && argument.tags){
-        node.tags = argument.tags;
+      if(this.settings.addTags && argument.sortedTags){
+        node.tags = argument.sortedTags;
       }
 
       for(let relation of argument.relations){
