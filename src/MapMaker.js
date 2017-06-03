@@ -13,10 +13,11 @@ class MapMaker{
     if(!previousSettings){
       previousSettings = {
         statementSelectionMode : "roots", //options: all | titled | roots | statement-trees | with-relations
+        argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
+        statementLabelMode: 'hide-untitled', //hide-untitled | title | text
         excludeDisconnected : true,
         groupMode : "heading", //options: heading | tag | none
         groupDepth : 2,
-        addNodeText : true,
         addTags : true
       }
     }
@@ -69,10 +70,15 @@ class MapMaker{
         let id = "n"+nodeCount;
         nodeCount++;
         let node = new Node("statement", statementKey, id);
-        if(this.settings.addNodeText){
+        if(this.settings.statementLabelMode != "title"){
           const lastMember = _.last(equivalenceClass.members);
           if(lastMember){
-            node.text = lastMember.text;            
+            node.labelText = lastMember.text;            
+          }
+        }
+        if(this.settings.statementLabelMode != "text" ||_.isEmpty(node.labelText)){
+          if(this.settings.statementLabelMode == 'title' || !statementKey.startsWith('Untitled')){
+            node.labelTitle = statementKey;
           }
         }
         if(this.settings.addTags && equivalenceClass.sortedTags){
@@ -104,10 +110,15 @@ class MapMaker{
       let id = "n"+nodeCount;
       nodeCount++;
       let node = new Node("argument", argument.title, id);
-      if(this.settings.addNodeText){
+      if(this.settings.argumentLabelMode != 'title'){
         const lastMember = _.last(argument.descriptions);
         if(lastMember){
-          node.text = lastMember.text;          
+          node.labelText = lastMember.text;          
+        }
+      }
+      if(this.settings.argumentLabelMode != 'description' || _.isEmpty(node.labelText)){
+        if(!argument.title.startsWith('Untitled') || this.settings.argumentLabelMode == 'title'){
+          node.labelTitle = argument.title;
         }
       }
       if(this.settings.addTags && argument.sortedTags){
@@ -364,7 +375,8 @@ class MapMaker{
             group = {
               type: "group",
               id:section.id, 
-              title: section.title, 
+              title: section.title,
+              labelTitle: section.title,
               level: section.level, 
               nodes: []
             };

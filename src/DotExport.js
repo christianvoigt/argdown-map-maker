@@ -10,13 +10,11 @@ class DotExport{
         lineLength: 25,
         groupColors: ["#DADADA","#BABABA","#AAAAAA"],
         graphVizSettings: {
-          rankDir: 'BT', //BT | TB | LR | RL
+          rankdir: 'BT', //BT | TB | LR | RL
           concentrate: 'true',
-          ratio: 'fill',
+          ratio: 'auto',
           size: '10,10'
         },
-        argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
-        statementLabelMode: 'hide-untitled', //hide-untitled | title | text
         colorNodesByTag: true
       }
     }
@@ -70,7 +68,7 @@ class DotExport{
     if(node.type == "group"){
       this.groupCount++;
       let dotGroupId = "cluster_"+this.groupCount;
-      let groupLabel = node.title;
+      let groupLabel = node.labelTitle;
       if(this.settings.useHtmlLabels){
         groupLabel = this.foldAndEscape(groupLabel);        
         groupLabel = "<<FONT FACE=\"Arial\" POINT-SIZE=\"10\">"+groupLabel+"</FONT>>";
@@ -91,7 +89,7 @@ class DotExport{
       dot += "  color = \""+groupColor+"\";\n";
       dot += "  style = filled;\n";
       let labelloc = "t"
-      if(this.settings.rankDir == "BT"){
+      if(this.settings.graphVizSettings.rankdir == "BT"){
         labelloc = "b";
       }
       dot += " labelloc = \""+labelloc+"\";\n\n";
@@ -103,8 +101,8 @@ class DotExport{
       return dot;
     }
     
-    let title = node.title;
-    let text = node.text;
+    let title = node.labelTitle;
+    let text = node.labelText;
     let label = "";
     let color = "#63AEF2";
     if(this.settings.colorNodesByTag && node.tags && data.tagsDictionary){
@@ -114,23 +112,10 @@ class DotExport{
         color = tagData.color;
       }        
     }
+    label = this.getLabel(title, text);        
     if(node.type == "argument"){
-      if(this.settings.argumentLabelMode == 'hide-untitled'){
-        label = this.getLabel(title, text);        
-      }else if(this.settings.argumentLabelMode == 'title'){
-        label = this.getLabel(title, null);
-      }else{
-        label = this.getLabel(null, text);
-      }
       dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded\", fillcolor=\""+color+"\",  type=\""+node.type+"\"];\n";
     }else if(node.type == "statement"){
-      if(this.settings.statementLabelMode == 'hide-untitled'){
-        label = this.getLabel(title, text);        
-      }else if(this.settings.statementLabelMode == 'title'){
-        label = this.getLabel(title, null);
-      }else{
-        label = this.getLabel(null, text);
-      }      
       dot += "  "+node.id + " [label="+label+", shape=\"box\", style=\"filled,rounded,bold\", color=\""+color+"\", fillcolor=\"white\", labelfontcolor=\"white\", type=\""+node.type+"\"];\n";
     }        
     return dot;
@@ -139,7 +124,7 @@ class DotExport{
     let label = "";
     if(this.settings.useHtmlLabels){
       label += "<<FONT FACE=\"Arial\" POINT-SIZE=\"8\"><TABLE BORDER=\"0\" CELLSPACING=\"0\">";
-      if(!_.isEmpty(title) && (_.isEmpty(text) || !title.startsWith("Untitled"))){
+      if(!_.isEmpty(title)){
           let titleLabel = this.foldAndEscape(title);
           titleLabel = "<TR><TD ALIGN=\"center\"><B>"+titleLabel+"</B></TD></TR>";
           label += titleLabel;

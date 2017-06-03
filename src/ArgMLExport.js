@@ -108,7 +108,7 @@ standalone: true})
 
       if(node.type == "statement"){
         let statement = data.statements[node.title];
-        let thesisEl = argDataEl.e('arg:thesis',{'id':node.argmlId, 'colorIndex':'0'}).e('arg:title', null, statement.title).up();
+        let thesisEl = argDataEl.e('arg:thesis',{'id':node.argmlId, 'colorIndex':'0'}).e('arg:title', null, statement.label).up();
         let lastMember = _.last(statement.members);
         thesisEl.e('arg:content', null, lastMember.text);
         let shapeNode = nodeEl.e('data',{'key':'d3'}).e('y:shapeNode');
