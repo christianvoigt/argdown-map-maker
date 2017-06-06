@@ -1,10 +1,10 @@
 {
   "name": "argdown-map-maker",
-  "version": "0.0.17",
+  "version": "0.1.0",
   "license": "MIT",
   "main": "lib/src/index.js",
   "dependencies": {
-    "argdown-parser": "git+https://github.com/christianvoigt/argdown-parser.git#develop",
+    "argdown-parser": "git+https://github.com/christianvoigt/argdown-parser.git",
     "lodash": "^4.17.4",
     "xmlbuilder": "^8.2.2"
   },
