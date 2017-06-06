@@ -1,6 +1,6 @@
 {
   "name": "argdown-map-maker",
-  "version": "0.0.17",
+  "version": "0.1.0",
   "license": "MIT",
   "main": "lib/src/index.js",
   "dependencies": {
