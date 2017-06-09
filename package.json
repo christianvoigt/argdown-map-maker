@@ -9,7 +9,7 @@
     "xmlbuilder": "^8.2.2"
   },
   "peerDependencies": {
-    "argdown-parser": "git+https://github.com/christianvoigt/argdown-parser.git#develop"
+    "argdown-parser": "git+https://github.com/christianvoigt/argdown-parser.git"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
   "readmeFilename": "Readme.md",
   "preferGlobal": false,
   "devDependencies": {
-    "argdown-parser": "git+https://github.com/christianvoigt/argdown-parser.git#develop",
+    "argdown-parser": "git+https://github.com/christianvoigt/argdown-parser.git",
     "babel-cli": "^6.24.1",
     "babel-core": "^6.25.0",
     "babel-eslint": "^7.2.3",
