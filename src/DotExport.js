@@ -32,7 +32,10 @@ class DotExport{
         this.config = data.config.DotExport;
       }
     }
-    
+    if(!data.map || !data.statements || !data.arguments){
+      return data;
+    }
+        
     this.groupCount = 0;
     let dot = "digraph \""+this.settings.graphname+"\" {\n\n";
     if(this.settings.graphVizSettings){

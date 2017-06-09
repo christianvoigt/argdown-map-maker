@@ -1,9 +1,11 @@
 import { expect } from 'chai';
-import {ArgdownApplication, ModelPlugin} from 'argdown-parser';
+import {ArgdownApplication, ParserPlugin, ModelPlugin} from 'argdown-parser';
 import {MapMaker, ArgMLExport} from '../src/index.js';
 import fs from 'fs';
 
 let app = new ArgdownApplication();
+let parserPlugin = new ParserPlugin();
+app.addPlugin(parserPlugin, 'parse-input');
 let modelPlugin = new ModelPlugin();
 app.addPlugin(modelPlugin,'build-model');
 let mapMaker = new MapMaker({groupMode:'none'});
@@ -14,8 +16,7 @@ app.addPlugin(argMLExport, "export-argml");
 describe("ArgMLExport", function() {
   it("sanity test", function(){
     let source = "<Argument 1>\n  + [Statement 1]: Hello World!\n    +<Argument 2>: Description";
-    app.parse(source);
-    let result = app.run(['build-model','export-argml']);
+    let result = app.run(['parse-input','build-model','export-argml'],{input:source});
     // console.log(result.argml.end({
     //     pretty: true,
     //     indent: '  ',
@@ -26,8 +27,7 @@ describe("ArgMLExport", function() {
   });
   it("can export Argdown intro", function(){
     let source = fs.readFileSync("./test/intro.argdown", 'utf8');
-    app.parse(source);
-    let result = app.run(['build-model','export-argml']);
+    let result = app.run(['parse-input','build-model','export-argml'],{input:source});
     // console.log(result.argml.end({
     //     pretty: true,
     //     indent: '  ',

@@ -4,7 +4,7 @@
   "license": "MIT",
   "main": "lib/src/index.js",
   "dependencies": {
-    "argdown-parser": "git+https://github.com/christianvoigt/argdown-parser.git",
+    "argdown-parser": "git+https://github.com/christianvoigt/argdown-parser.git#develop",
     "lodash": "^4.17.4",
     "xmlbuilder": "^8.2.2"
   },

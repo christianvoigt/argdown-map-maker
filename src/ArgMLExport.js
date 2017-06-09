@@ -26,6 +26,9 @@ class ArgMLExport{
         this.config = data.config.ArgMLExport;
       }
     }
+    if(!data.map || !data.statements || !data.arguments){
+      return data;
+    }
     
     let argml = builder.create('graphml',{version: '1.0',
 encoding: 'UTF-8',
