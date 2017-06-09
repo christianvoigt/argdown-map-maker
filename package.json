@@ -4,6 +4,7 @@
   "license": "MIT",
   "main": "lib/src/index.js",
   "dependencies": {
+    "chance": "^1.0.9",
     "lodash": "^4.17.4",
     "xmlbuilder": "^8.2.2"
   },
