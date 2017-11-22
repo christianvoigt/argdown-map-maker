@@ -11,7 +11,7 @@ class DotExport{
         groupColors: ["#DADADA","#BABABA","#AAAAAA"],
         graphVizSettings: {
           rankdir: 'BT', //BT | TB | LR | RL
-          concentrate: 'true',
+          concentrate: 'false',
           ratio: 'auto',
           size: '10,10'
         },
@@ -56,6 +56,8 @@ class DotExport{
       let color = "green";
       if(edge.type == "attack"){
         color = "red";
+      }else if(edge.type == "undercut"){
+        color = "purple";
       }
       let attributes = "color=\""+color+"\", type=\""+edge.type+"\"";
       dot += "  "+edge.from.id + " -> " + edge.to.id + " ["+attributes+"];\n";

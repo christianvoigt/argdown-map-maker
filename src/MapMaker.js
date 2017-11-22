@@ -270,6 +270,8 @@ class MapMaker{
         edgeType = 'attack';
       }else if(edgeType == 'entails'){
         edgeType = 'support';
+      }else if(edgeType == 'undercut'){
+        edgeType = 'undercut';
       }
       for(let from of froms){
         for(let to of tos){
