@@ -1,4 +1,5 @@
 import {Argument} from 'argdown-parser';
+import { EquivalenceClass } from 'argdown-parser';
 import * as _ from 'lodash';
 import {Node} from './model/Node.js';
 import {Edge} from './model/Edge.js';
@@ -45,7 +46,7 @@ class MapMaker{
 
     const untitledTest = /^Untitled/;
 
-    //1) find all statement classes that should be inserted as nodes
+    //1) find all equivalence classes that should be inserted as nodes
     //2) Add all outgoing relations of each of these statements to the relations to be represented with edges
     let statementKeys = Object.keys(data.statements);
     for(let statementKey of statementKeys){
@@ -150,7 +151,7 @@ class MapMaker{
               hasRelations = true;
             }
           }
-        }else if(statement.role == "conclusion" && statement == argument.pcs[argument.pcs.length - 1]){
+        }else if(statement.role == "conclusion" && statement == argument.pcs[argument.pcs.length - 1]){ //statement is main conclusion
           roles.conclusionIn.push(node);
 
           for(let relation of equivalenceClass.relations){
@@ -184,52 +185,56 @@ class MapMaker{
     for(let relation of relationsForMap){
       let froms = []; //a list of source nodes for the edges representing the relation in the graph
       let tos = []; //a list of target nodes for the edges representing the relation in the graph
+      // For froms and tos there are three cases to consider: 
+      // a) argumentNodes in the graph
+      // b) statementNodes in the graph
+      // c) statements that are used as premises or conclusions within argumentNode in the graph
 
       let fromNode;
       let fromStatement;
 
-      if(relation.from instanceof Argument){
+      if(relation.from instanceof Argument){ //a) argumentNode
         fromNode = argumentNodes[relation.from.title];
-      }else{
+      }else{ //b) statementNode
         fromNode = statementNodes[relation.from.title];
         fromStatement = data.statements[relation.from.title];
       }
 
-      if(!fromNode){ //no node representing the source, so look for all arguments that use the source as conclusion
+      if(!fromNode){ //c): no node representing the source, so look for all arguments that use the source as conclusion
         let roles = statementRoles[relation.from.title];
         fromStatement = data.statements[relation.from.title];
-        if(roles){
+        if(roles && roles.conclusionIn){
           froms.push.apply(froms, roles.conclusionIn);
         }
-      }else{ //push either the argument node or the statement node to the sources list
+      }else{ //a) or b): push either the argument node or the statement node to the sources list
         froms.push(fromNode);
       }
 
       let toNode;
       let toStatement;
 
-      if(relation.to instanceof Argument){
+      if(relation.to instanceof Argument){//a) argumentNode
         toNode = argumentNodes[relation.to.title];
-      }else{
+      }else{//b) statementNode
         toNode = statementNodes[relation.to.title];
         toStatement = data.statements[relation.to.title];
       }
 
-      if(!toNode){ //no node representing the target, so look for all arguments that use the target as premise
+      if(!toNode){ //c): no node representing the target, so look for all arguments that use the target as premise
         let roles = statementRoles[relation.to.title];
         toStatement = data.statements[relation.to.title];
-        if(roles){
+        if(roles && roles.premiseIn){
           tos.push.apply(tos, roles.premiseIn);
         }
-      }else{ //push either the argument node or the statement node to the targets list
+      }else{ //a) or b): push either the argument node or the statement node to the targets list
         tos.push(toNode);
       }
 
       if(relation.type == "contradictory"){
-        //special case: both statements of a contradictory are represented as statement nodes
+        //special case: both statements of a contradictory relation are represented as statement nodes
         //in this case there have to be two attack relations going both ways
         //we have to add the "reverse direction" edge here
-        if(fromNode && toNode && !(fromNode instanceof Argument) && !(toNode instanceof Argument)){
+        if(fromNode && toNode && fromNode.type == "statement" && toNode.type == "statement"){
           let edgeId = 'e'+edgeCount;
           edgeCount++;
           let edge = new Edge({
@@ -243,25 +248,43 @@ class MapMaker{
                     });
           map.edges.push(edge);         
         }
+
+        //special case: source of a contradictory relation is a premise in an argument
+        //and target is argument or statementNode.
+        //We have to add an edge in the inverted direction
         let fromRoles = statementRoles[relation.from.title];
+        let toRoles = statementRoles[relation.to.title];
         if(fromRoles && fromRoles.premiseIn){
           for(let argumentNode of fromRoles.premiseIn){
-            for(let to of tos){
-              let edgeId = 'e'+edgeCount;
+            if(toNode && toNode.type == "statement"){ // toNode is statementNode
+              let edgeId = 'e' + edgeCount;
               edgeCount++;
               map.edges.push(new Edge({
-                id:edgeId,
-                from:to,
-                to:argumentNode,
-                fromStatement:toStatement,
+                id: edgeId,
+                from: toNode,
+                to: argumentNode,
+                fromStatement: toStatement,
                 toStatement: fromStatement,
-                type:"attack",
-                status:"reconstructed"
+                type: "attack",
+                status: "reconstructed"
               }));
+            }else if(toRoles && toRoles.conclusionIn){ // there are arguments that have the to statement as conclusion
+              for(let toArgument of toRoles.conclusionIn){
+                let edgeId = 'e' + edgeCount;
+                edgeCount++;
+                map.edges.push(new Edge({
+                  id: edgeId,
+                  from: toArgument,
+                  to: argumentNode,
+                  fromStatement: toStatement,
+                  toStatement: fromStatement,
+                  type: "attack",
+                  status: "reconstructed"
+                }));
+              }
             }
           }
         }
-
       }
       
       //now add an edge from each source to each target
@@ -288,7 +311,7 @@ class MapMaker{
           }));
         }
       }
-    }
+    }//ends foreach loop of relationsForMap
 
     //Add support edges to represent equivalence relations between sentences or sentence occurrences
     //1) From all argument nodes that use p as main conclusion to statement node p
