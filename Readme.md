@@ -1,10 +1,10 @@
 # Argdown Map Maker
 
-![Argdown](https://cdn.rawgit.com/christianvoigt/argdown-map-maker/master/argdown-mark.svg)
-
 Tools for making argument maps from Argdown documents.
 
 For more information about the Argdown argumentation syntax, visit the [Argdown repository](https://github.com/christianvoigt/argdown).
+
+![Argdown](https://cdn.rawgit.com/christianvoigt/argdown-map-maker/master/argdown-mark.svg)
 
 This package contains two plugins for [Argdown applications](https://github.com/christianvoigt/argdown-parser):
 
