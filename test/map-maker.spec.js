@@ -89,20 +89,21 @@ describe("MapMaker", function () {
     expect(result.map.nodes.length).to.equal(3);
     expect(result.map.edges.length).to.equal(2);
   });
-  it("does not add duplicate arrows for contradictions", function () {
-    mapMaker.config = { statementSelectionMode: "with-relations" };
-    let source = `<A>: A
-  >< [T2]: B
+// The following test is no longer valid Argdown as contradictions can only be defined between two statements
+//   it("does not add duplicate arrows for contradictions", function () {
+//     mapMaker.config = { statementSelectionMode: "with-relations" };
+//     let source = `<A>: A
+//   >< [T2]: B
   
-<A>
+// <A>
 
-(1) A
-----
-(2) [T1]: C`;
-    let result = app.run(['parse-input', 'build-model', 'make-map'], { input: source });
-    expect(result.map.nodes.length).to.equal(3);
-    expect(result.map.edges.length).to.equal(3);
-  });
+// (1) A
+// ----
+// (2) [T1]: C`;
+//     let result = app.run(['parse-input', 'build-model', 'make-map'], { input: source });
+//     expect(result.map.nodes.length).to.equal(3);
+//     expect(result.map.edges.length).to.equal(3);
+//   });
   it("can create groups from sections", function () {
     let source = `# Section 1
   
