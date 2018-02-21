@@ -1,3 +1,9 @@
+## 0.3.1 (02-21-2018)
+
+#### Bug fixes
+
+- Fixed argdown-parser peer dependency in package.json
+
 ## 0.3.0 (02-21-2018)
 
 #### Major Changes
