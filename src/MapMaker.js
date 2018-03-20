@@ -12,9 +12,9 @@ class MapMaker{
     let previousSettings = this.settings;
     if(!previousSettings){
       previousSettings = {
-        statementSelectionMode : "roots", //options: all | titled | roots | statement-trees | with-relations
-        argumentLabelMode: 'hide-untitled', //hide-untitled | title | description
-        statementLabelMode: 'hide-untitled', //hide-untitled | title | text
+        statementSelectionMode : "roots", // options: all | titled | roots | statement-trees | with-relations
+        argumentLabelMode: 'hide-untitled', // hide-untitled | title | description
+        statementLabelMode: 'hide-untitled', // hide-untitled | title | text
         excludeDisconnected : true,
         groupMode : "heading", //options: heading | tag | none
         groupDepth : 2,
@@ -23,19 +23,17 @@ class MapMaker{
     }
     this.settings = _.defaultsDeep({}, config, previousSettings);
   }
-  run(data){
-    if(data.config){
-      if(data.config.map){
-        this.config = data.config.map;
-      }else if(data.config.MapMaker){
-        this.config = data.config.MapMaker;
-      }
+  run(request, response){
+    if(request.map){
+      this.config = request.map;
+    } else if (request.MapMaker){
+      this.config = request.MapMaker;
     }
 
-    data.map = this.makeMap(data);
-    return data;
+    response.map = this.makeMap(response);
+    return response;
   }
-  makeMap(data){
+  makeMap(response){
     let map = {nodes: [], edges: []};
     let nodeCount = 0; //used for generating node ids
     let edgeCount = 0; //used for generating edge ids
@@ -47,9 +45,9 @@ class MapMaker{
 
     //1) find all statement classes that should be inserted as nodes
     //2) Add all outgoing relations of each of these statements to the relations to be represented with edges
-    let statementKeys = Object.keys(data.statements);
+    let statementKeys = Object.keys(response.statements);
     for(let statementKey of statementKeys){
-      let equivalenceClass = data.statements[statementKey];
+      let equivalenceClass = response.statements[statementKey];
       let selectionTest = true;
 
       let isConnected = equivalenceClass.relations.length > 0 || equivalenceClass.isUsedAsPremise || equivalenceClass.isUsedAsConclusion;
@@ -98,7 +96,7 @@ class MapMaker{
       }
     }
 
-    let argumentKeys = Object.keys(data.arguments);
+    let argumentKeys = Object.keys(response.arguments);
     let statementRoles = {}; //a dictionary mapping statement titles to {premiseIn:[nodeId], conclusionIn:[nodeId]} objects
 
     //1) add all (connected) arguments as argument nodes
@@ -106,7 +104,7 @@ class MapMaker{
     //3) add all outgoing relations of each main conclusion to relationsForMap, if the conclusion is not represented by a statement node.
     for(let argumentKey of argumentKeys){
       let hasRelations = false;
-      let argument = data.arguments[argumentKey];
+      let argument = response.arguments[argumentKey];
       let id = "n"+nodeCount;
       nodeCount++;
       let node = new Node("argument", argument.title, id);
@@ -134,7 +132,7 @@ class MapMaker{
       }
       for(let statement of argument.pcs){
         let roles = statementRoles[statement.title];
-        let equivalenceClass = data.statements[statement.title];
+        let equivalenceClass = response.statements[statement.title];
         if(!roles){
           roles = {premiseIn:[], conclusionIn:[]};
           statementRoles[statement.title] = roles;
@@ -192,12 +190,12 @@ class MapMaker{
         fromNode = argumentNodes[relation.from.title];
       }else{
         fromNode = statementNodes[relation.from.title];
-        fromStatement = data.statements[relation.from.title];
+        fromStatement = response.statements[relation.from.title];
       }
 
       if(!fromNode){ //no node representing the source, so look for all arguments that use the source as conclusion
         let roles = statementRoles[relation.from.title];
-        fromStatement = data.statements[relation.from.title];
+        fromStatement = response.statements[relation.from.title];
         if(roles){
           froms.push.apply(froms, roles.conclusionIn);
         }
@@ -212,12 +210,12 @@ class MapMaker{
         toNode = argumentNodes[relation.to.title];
       }else{
         toNode = statementNodes[relation.to.title];
-        toStatement = data.statements[relation.to.title];
+        toStatement = response.statements[relation.to.title];
       }
 
       if(!toNode){ //no node representing the target, so look for all arguments that use the target as premise
         let roles = statementRoles[relation.to.title];
-        toStatement = data.statements[relation.to.title];
+        toStatement = response.statements[relation.to.title];
         if(roles){
           tos.push.apply(tos, roles.premiseIn);
         }
@@ -294,7 +292,7 @@ class MapMaker{
     for(let node of map.nodes){
       if(node.type == 'statement'){
         let roles = statementRoles[node.title];
-        let statement = data.statements[node.title];
+        let statement = response.statements[node.title];
         if(roles){
           //1) add conclusion +> statementNode edges
           for(let argumentNode of roles.conclusionIn){
@@ -345,7 +343,7 @@ class MapMaker{
       for(let node of nodeList){
         let section = null;
         if(node.type == "argument"){
-          let argument = data.arguments[node.title];
+          let argument = response.arguments[node.title];
           if(argument.section){
             section = argument.section;
           }else{
@@ -357,7 +355,7 @@ class MapMaker{
             }            
           }
         }else{
-          let equivalenceClass = data.statements[node.title];
+          let equivalenceClass = response.statements[node.title];
           for(let member of equivalenceClass.members){
             if(member.section){
               section = member.section;

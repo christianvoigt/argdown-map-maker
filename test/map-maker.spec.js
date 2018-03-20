@@ -13,7 +13,7 @@ app.addPlugin(mapMaker, "make-map");
 describe("MapMaker", function() {
   it("can create map from one statement and two argument definitions", function(){
     let source = "<Argument 1>\n  + [Statement 1]: Hello World!\n    +<Argument 2>: Description";
-    let result = app.run(['parse-input','build-model','make-map'],{input:source});
+    let result = app.run({process:['parse-input','build-model','make-map'],input:source});
     //console.log(JSON.stringify(result.map, null, 2));
     //app.parser.logAst(result.ast);
     //preprocessor.logRelations(result);
@@ -26,10 +26,15 @@ describe("MapMaker", function() {
     expect(result.map.edges.length).to.equal(2);
   });
   it("can create a map from two argument reconstructions", function(){
-    mapMaker.config = {statementSelectionMode: "with-relations"};
     let source = "<Argument 1>\n\n  (1)[Statement 1]: A\n  (2)[Statement 2]: B\n  ----\n  (3)[Statement 2]: C"+
     "\n\n<Argument 2>\n\n  (1)[Statement 4]: A\n  (2)[Statement 5]: B\n  ----\n  (3)[Statement 6]: C\n  ->[Statement 1]";
-    let result = app.run(['parse-input','build-model','make-map'],{input:source});
+    let request = {
+      process: ['parse-input', 'build-model', 'make-map'], input: source,
+      map: {
+        statementSelectionMode: "with-relations"
+      }
+    }
+    let result = app.run(request);
     //console.log(JSON.stringify(result.map, null, 2));
     //app.parser.logAst(result.ast);
     //preprocessor.logRelations(result);
@@ -51,7 +56,6 @@ describe("MapMaker", function() {
     expect(result.map.edges[2].to.title).to.equals("Statement 6");
   });
   it("selects argument if premises or conclusions are selected as statement nodes", function(){
-    mapMaker.config = {statementSelectionMode: "statement-trees"};
     let source = `<!--Hier wird das Argument nicht richtig gezeichnet.-->
 
 [ZT]: ZT
@@ -64,7 +68,13 @@ describe("MapMaker", function() {
 (2) P2
 -- Inference rule --
 (3) [ZT]`;
-    let result = app.run(['parse-input','build-model','make-map'],{input:source});
+    let request = {
+      process: ['parse-input', 'build-model', 'make-map'], input: source,
+      map:{
+        statementSelectionMode: "statement-trees"
+      }
+    }
+    let result = app.run(request);
 
     expect(result.map.nodes.length).to.equal(3);
     expect(result.map.edges.length).to.equal(2);
@@ -82,24 +92,37 @@ describe("MapMaker", function() {
 ----
 (3) C1 
   >< [T2]`;
-    let result = app.run(['parse-input','build-model','make-map'],{input:source});
+    let request = {
+      process: ['parse-input', 'build-model', 'make-map'],
+      input: source,
+      map: {
+        statementSelectionMode: "statement-trees"
+      }
+    };
+    let result = app.run(request);
     expect(result.map.nodes.length).to.equal(3);
     expect(result.map.edges.length).to.equal(2);
   });    
 it("does not add duplicate arrows for contradictions", function(){
-  mapMaker.config = {statementSelectionMode: "with-relations"};
-  let source = `<A>: A
-  >< [T2]: B
-  
-<A>
+  let source = `<A>
 
 (1) A
 ----
-(2) [T1]: C`;
-  let result = app.run(['parse-input','build-model','make-map'],{input:source});
-  expect(result.map.nodes.length).to.equal(3);
+(2) [T1]: C
+  >< [T2]: B
+
+`;
+  let request = {
+    process: ['parse-input', 'build-model', 'make-map'], 
+    input: source,
+    map:{
+      statementSelectionMode: "with-relations"
+    }
+  };
+  let result = app.run(request);
   expect(result.map.edges.length).to.equal(3);
-});    
+  expect(result.map.nodes.length).to.equal(3);
+});
 it("can create groups from sections", function(){
   let source = `# Section 1
   
@@ -116,7 +139,7 @@ it("can create groups from sections", function(){
   <C>: text
   
   `;
-  let result = app.run(['parse-input','build-model','make-map'],{input:source});
+  let result = app.run({process:['parse-input','build-model','make-map'],input:source});
   //console.log(JSON.stringify(result.map, null, 2));
   //app.parser.logAst(result.ast);
   //preprocessor.logRelations(result);

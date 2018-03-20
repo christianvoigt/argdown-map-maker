@@ -24,19 +24,17 @@ class DotExport{
     this.name = "DotExport";
     this.config = config;
   }
-  run(data){
-    if(data.config){
-      if(data.config.dot){
-        this.config = data.config.dot;
-      }else if(data.config.DotExport){
-        this.config = data.config.DotExport;
-      }
+  run(request, response){
+    if(request.dot){
+      this.config = request.dot;
+    }else if(request.DotExport){
+      this.config = request.DotExport;
     }
-    if(!data.map || !data.statements || !data.arguments){
-      return data;
+    if(!response.map || !response.statements || !response.arguments){
+      return response;
     }
         
-    this.groupCount = 0;
+    response.groupCount = 0;
     let dot = "digraph \""+this.settings.graphname+"\" {\n\n";
     if(this.settings.graphVizSettings){
       const keys = Object.keys(this.settings.graphVizSettings);
@@ -46,13 +44,13 @@ class DotExport{
       }
     }
 
-    for(let node of data.map.nodes){
-      dot += this.exportNodesRecursive(node, data);
+    for(let node of response.map.nodes){
+      dot += this.exportNodesRecursive(node, response);
     }
 
     dot +="\n\n";
 
-    for(let edge of data.map.edges){
+    for(let edge of response.map.edges){
       let color = "green";
       if(edge.type == "attack"){
         color = "red";
@@ -63,17 +61,17 @@ class DotExport{
 
     dot += "\n}";
 
-    data.dot = dot;
-    return data;
+    response.dot = dot;
+    return response;
   }
-  exportNodesRecursive(node, data){
+  exportNodesRecursive(node, response){
     let dot = "";
     if(node.type == "group"){
-      this.groupCount++;
-      let dotGroupId = "cluster_"+this.groupCount;
+      response.groupCount++;
+      let dotGroupId = "cluster_"+response.groupCount;
       let groupLabel = node.labelTitle;
       if(this.settings.useHtmlLabels){
-        groupLabel = this.foldAndEscape(groupLabel);        
+        groupLabel = this.foldAndEscape(groupLabel);
         groupLabel = "<<FONT FACE=\"Arial\" POINT-SIZE=\"10\">"+groupLabel+"</FONT>>";
       }else{
         groupLabel = "\""+this.escapeQuotesForDot(groupLabel)+"\"";
@@ -81,7 +79,7 @@ class DotExport{
       let groupColor = "#CCCCCC";
       if(this.settings.groupColors && this.settings.groupColors.length > 0){
         if(this.settings.groupColors.length >= node.level){
-          groupColor = this.settings.groupColors[node.level];                  
+          groupColor = this.settings.groupColors[node.level];
         }else{
           groupColor = this.settings.groupColors[this.settings.groupColors.length - 1];
         }
@@ -98,7 +96,7 @@ class DotExport{
       dot += " labelloc = \""+labelloc+"\";\n\n";
       
       for(let child of node.nodes){
-        dot += this.exportNodesRecursive(child, data);
+        dot += this.exportNodesRecursive(child, response);
       }
       dot += "\n}\n\n";
       return dot;
@@ -108,9 +106,9 @@ class DotExport{
     let text = node.labelText;
     let label = "";
     let color = "#63AEF2";
-    if(this.settings.colorNodesByTag && node.tags && data.tagsDictionary){
+    if(this.settings.colorNodesByTag && node.tags && response.tagsDictionary){
       const tag = node.tags[0];
-      let tagData = data.tagsDictionary[tag];
+      let tagData = response.tagsDictionary[tag];
       if(tagData && tagData.color){
         color = tagData.color;
       }        

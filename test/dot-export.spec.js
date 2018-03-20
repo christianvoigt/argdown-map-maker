@@ -38,7 +38,7 @@ describe("DotExport", function() {
         - text
     `;
 
-    let result = app.run(['parse-input','build-model','export'],{input:source});
+    let result = app.run({process:['parse-input','build-model','export'],input:source});
     expect(result.dot).to.exist;
   });
 });
