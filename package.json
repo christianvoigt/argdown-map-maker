@@ -5,6 +5,7 @@
   "main": "lib/src/index.js",
   "dependencies": {
     "chance": "^1.0.9",
+    "dagre-d3": "^0.6.1",
     "lodash": "^4.17.4",
     "xmlbuilder": "^8.2.2"
   },
