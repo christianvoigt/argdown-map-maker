@@ -1,13 +1,12 @@
-import { expect } from 'chai';
-import { ArgdownApplication, ParserPlugin, ModelPlugin } from 'argdown-parser';
-import { MapMaker, DotExport, DotToSvgExport } from '../src/index.js';
-
+import { expect } from "chai";
+import { ArgdownApplication, ParserPlugin, ModelPlugin } from "argdown-parser";
+import { MapMaker, DotExport, DotToSvgExport } from "../src/index.js";
 
 const app = new ArgdownApplication();
 const parserPlugin = new ParserPlugin();
-app.addPlugin(parserPlugin, 'parse-input');
+app.addPlugin(parserPlugin, "parse-input");
 const modelPlugin = new ModelPlugin();
-app.addPlugin(modelPlugin, 'build-model');
+app.addPlugin(modelPlugin, "build-model");
 const mapMaker = new MapMaker();
 const dotExport = new DotExport();
 const svgExport = new DotToSvgExport();
@@ -15,8 +14,8 @@ app.addPlugin(mapMaker, "export");
 app.addPlugin(dotExport, "export");
 app.addPlugin(svgExport, "export");
 
-describe("Svg export", function () {
-    it("sanity test", function () {
+describe("Svg export", function() {
+    it("sanity test", function() {
         let source = `
     # Section 1
     
@@ -40,7 +39,7 @@ describe("Svg export", function () {
         - text
     `;
 
-        let result = app.run(['parse-input', 'build-model', 'export'], { input: source });
-        expect(result.svg).to.exist;
+        let response = app.run({ process: ["parse-input", "build-model", "export"], input: source });
+        expect(response.svg).to.exist;
     });
 });

@@ -1,5 +1,5 @@
-import Viz from 'viz.js';
-import * as _ from 'lodash';
+import Viz from "viz.js";
+import * as _ from "lodash";
 
 class DotToSvgExport {
     set config(config) {
@@ -9,27 +9,25 @@ class DotToSvgExport {
         }
         this.settings = _.defaultsDeep({}, config, previousSettings);
         // enforce svg export
-        this.settings.format = 'svg';
+        this.settings.format = "svg";
     }
     constructor(config) {
-        this.name = "DotExport";
+        this.name = "DotToSvgExport";
         this.config = config;
     }
-    run(data) {
-        if (data.config) {
-            if (data.config.dotToSvg) {
-                this.config = data.config.dotToSvg;
-            } else if (data.config.DotToSvgExport) {
-                this.config = data.config.DotToSvgExport;
-            }
+    run(request, response) {
+        if (request.dotToSvg) {
+            this.config = request.dotToSvg;
+        } else if (request.DotToSvgExport) {
+            this.config = request.DotToSvgExport;
         }
-        if (!data.dot) {
-            return data;
+        if (!response.dot) {
+            return response;
         }
-        data.svg = Viz(data.dot, this.settings);
-        return data;
+        response.svg = Viz(response.dot, this.settings);
+        return response;
     }
 }
 module.exports = {
     DotToSvgExport: DotToSvgExport
-}
+};
