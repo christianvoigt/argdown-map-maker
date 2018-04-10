@@ -1,3 +1,13 @@
+## 0.4.1 (04-10-2018)
+
+### Minor Changes
+
+*   Implemented new configuration pattern for plugins (see Readme of argdown-parser for details)
+
+### Bug fixes
+
+*   Support relations resulting from conclusion-premise equivalences are no longer ignored if no equivalent statement is represented as statement node in map.
+
 ## 0.4.0 (03-22-2018)
 
 ### Breaking changes

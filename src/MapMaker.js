@@ -6,40 +6,41 @@ import { Edge } from "./model/Edge.js";
 class MapMaker {
     constructor(config) {
         this.name = "MapMaker";
-        this.config = config;
+        this.defaults = _.defaultsDeep({}, config, {
+            statementSelectionMode: "roots", // options: all | titled | roots | statement-trees | with-relations
+            argumentLabelMode: "hide-untitled", // hide-untitled | title | description
+            statementLabelMode: "hide-untitled", // hide-untitled | title | text
+            excludeDisconnected: true,
+            groupMode: "heading", //options: heading | tag | none
+            groupDepth: 2,
+            addTags: true
+        });
     }
-    set config(config) {
-        let previousSettings = this.settings;
-        if (!previousSettings) {
-            previousSettings = {
-                statementSelectionMode: "roots", // options: all | titled | roots | statement-trees | with-relations
-                argumentLabelMode: "hide-untitled", // hide-untitled | title | description
-                statementLabelMode: "hide-untitled", // hide-untitled | title | text
-                excludeDisconnected: true,
-                groupMode: "heading", //options: heading | tag | none
-                groupDepth: 2,
-                addTags: true
-            };
+    getSettings(request) {
+        if (request.map) {
+            return request.map;
+        } else if (request.MapMaker) {
+            return request.MapMaker;
+        }else{
+            request.map = {};
+            return request.map;
         }
-        this.settings = _.defaultsDeep({}, config, previousSettings);
+    }
+    prepare(request){
+        _.defaultsDeep(this.getSettings(request), this.defaults);
     }
     run(request, response) {
-        if (request.map) {
-            this.config = request.map;
-        } else if (request.MapMaker) {
-            this.config = request.MapMaker;
-        }
-
-        response.map = this.makeMap(response);
+        response.map = this.makeMap(request, response);
         return response;
     }
-    makeMap(response) {
-        let map = { nodes: [], edges: [] };
+    makeMap(request, response) {
+        const settings = this.getSettings(request);
+        const map = { nodes: [], edges: [] };
         let nodeCount = 0; //used for generating node ids
         let edgeCount = 0; //used for generating edge ids
-        let statementNodes = {}; //a dictionary of statement nodes. The key is the statement's title
-        let argumentNodes = {}; //a dictionary of argument nodes. The key is the argument's title
-        let relationsForMap = []; //the relations that have to be visualized by edges between nodes in the map (each relation can be represented by more than one edge)
+        const statementNodes = {}; //a dictionary of statement nodes. The key is the statement's title
+        const argumentNodes = {}; //a dictionary of argument nodes. The key is the argument's title
+        const relationsForMap = []; //the relations that have to be visualized by edges between nodes in the map (each relation can be represented by more than one edge)
 
         const untitledTest = /^Untitled/;
 
@@ -59,34 +60,34 @@ class MapMaker {
                 !equivalenceClass.isUsedAsPremise &&
                 !equivalenceClass.isUsedAsConclusion;
 
-            if (this.settings.statementSelectionMode == "all") {
+            if (settings.statementSelectionMode == "all") {
                 selectionTest = true;
             }
-            if (this.settings.statementSelectionMode == "titled") {
+            if (settings.statementSelectionMode == "titled") {
                 selectionTest = notUsedInArgumentButWithRelations || !untitledTest.exec(equivalenceClass.title);
-            } else if (this.settings.statementSelectionMode == "roots") {
+            } else if (settings.statementSelectionMode == "roots") {
                 selectionTest = notUsedInArgumentButWithRelations || equivalenceClass.isUsedAsRootOfStatementTree;
-            } else if (this.settings.statementSelectionMode == "statement-trees") {
+            } else if (settings.statementSelectionMode == "statement-trees") {
                 selectionTest =
                     equivalenceClass.isUsedAsRootOfStatementTree || equivalenceClass.isUsedAsChildOfStatementTree;
-            } else if (this.settings.statementSelectionMode == "with-relations") {
+            } else if (settings.statementSelectionMode == "with-relations") {
                 selectionTest = equivalenceClass.relations.length > 0;
             }
-            if ((!this.settings.excludeDisconnected || isConnected) && selectionTest) {
+            if ((!settings.excludeDisconnected || isConnected) && selectionTest) {
                 nodeCount++;
                 let node = this.createNode("statement", statementKey, nodeCount);
-                if (this.settings.statementLabelMode != "title") {
+                if (settings.statementLabelMode != "title") {
                     const lastMember = _.last(equivalenceClass.members);
                     if (lastMember) {
                         node.labelText = lastMember.text;
                     }
                 }
-                if (this.settings.statementLabelMode != "text" || _.isEmpty(node.labelText)) {
-                    if (this.settings.statementLabelMode == "title" || !statementKey.startsWith("Untitled")) {
+                if (settings.statementLabelMode != "text" || _.isEmpty(node.labelText)) {
+                    if (settings.statementLabelMode == "title" || !statementKey.startsWith("Untitled")) {
                         node.labelTitle = statementKey;
                     }
                 }
-                if (this.settings.addTags && equivalenceClass.sortedTags) {
+                if (settings.addTags && equivalenceClass.sortedTags) {
                     node.tags = equivalenceClass.sortedTags;
                 }
                 statementNodes[statementKey] = node;
@@ -114,18 +115,18 @@ class MapMaker {
             let argument = response.arguments[argumentKey];
             nodeCount++;
             let node = this.createNode("argument", argument.title, nodeCount);
-            if (this.settings.argumentLabelMode != "title") {
+            if (settings.argumentLabelMode != "title") {
                 const lastMember = _.last(argument.descriptions);
                 if (lastMember) {
                     node.labelText = lastMember.text;
                 }
             }
-            if (this.settings.argumentLabelMode != "description" || _.isEmpty(node.labelText)) {
-                if (!argument.title.startsWith("Untitled") || this.settings.argumentLabelMode == "title") {
+            if (settings.argumentLabelMode != "description" || _.isEmpty(node.labelText)) {
+                if (!argument.title.startsWith("Untitled") || settings.argumentLabelMode == "title") {
                     node.labelTitle = argument.title;
                 }
             }
-            if (this.settings.addTags && argument.sortedTags) {
+            if (settings.addTags && argument.sortedTags) {
                 node.tags = argument.sortedTags;
             }
 
@@ -176,7 +177,7 @@ class MapMaker {
                 }
             }
             //add argument node
-            if (!this.settings.excludeDisconnected || hasRelations) {
+            if (!settings.excludeDisconnected || hasRelations) {
                 argumentNodes[argumentKey] = node;
                 map.nodes.push(node);
             } else {
@@ -195,7 +196,11 @@ class MapMaker {
             if (argument.pcs) {
                 for (let statement of argument.pcs) {
                     const roles = statementRoles[statement.title];
-                    if (statement.role === "premise" && roles.conclusionIn && Object.keys(roles.conclusionIn).length > 0) {
+                    if (
+                        statement.role === "premise" &&
+                        roles.conclusionIn &&
+                        Object.keys(roles.conclusionIn).length > 0
+                    ) {
                         argumentNodes[argument.title] = node;
                         map.nodes.push(node);
                     } else if (
@@ -407,7 +412,7 @@ class MapMaker {
         //groups are added to map.nodes
         //nodes contained within a group are removed from map.nodes and pushed into group.nodes instead.
         //groups within groups are also pushed to group.nodes.
-        if (this.settings.groupMode && this.settings.groupMode != "none") {
+        if (settings.groupMode && settings.groupMode != "none") {
             const nodeList = map.nodes;
             map.nodes = [];
 
@@ -499,7 +504,7 @@ class MapMaker {
             }
 
             //normalize group levels
-            const minGroupLevel = maxGroupLevel - this.settings.groupDepth + 1;
+            const minGroupLevel = maxGroupLevel - settings.groupDepth + 1;
             for (let group of groupList) {
                 group.level = group.level - minGroupLevel;
             }

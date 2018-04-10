@@ -2,29 +2,31 @@ import Viz from "viz.js";
 import * as _ from "lodash";
 
 class DotToSvgExport {
-    set config(config) {
-        let previousSettings = this.settings;
-        if (!previousSettings) {
-            previousSettings = {};
-        }
-        this.settings = _.defaultsDeep({}, config, previousSettings);
-        // enforce svg export
-        this.settings.format = "svg";
-    }
     constructor(config) {
         this.name = "DotToSvgExport";
+        this.defaults = _.defaultsDeep({}, config, {
+            format: "svg"
+        });
         this.config = config;
     }
-    run(request, response) {
+    getSettings(request) {
         if (request.dotToSvg) {
-            this.config = request.dotToSvg;
+            return request.dotToSvg;
         } else if (request.DotToSvgExport) {
-            this.config = request.DotToSvgExport;
+            return request.DotToSvgExport;
+        } else {
+            request.dotToSvg = {};
+            return request.dotToSvg;
         }
+    }
+    prepare(request) {
+        _.defaultsDeep(this.getSettings(request), this.defaults);
+    }
+    run(request, response) {
         if (!response.dot) {
             return response;
         }
-        response.svg = Viz(response.dot, this.settings);
+        response.svg = Viz(response.dot, this.getSettings(request));
         return response;
     }
 }
