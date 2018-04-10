@@ -73,9 +73,8 @@ class MapMaker {
                 selectionTest = equivalenceClass.relations.length > 0;
             }
             if ((!this.settings.excludeDisconnected || isConnected) && selectionTest) {
-                let id = "n" + nodeCount;
                 nodeCount++;
-                let node = new Node("statement", statementKey, id);
+                let node = this.createNode("statement", statementKey, nodeCount);
                 if (this.settings.statementLabelMode != "title") {
                     const lastMember = _.last(equivalenceClass.members);
                     if (lastMember) {
@@ -104,18 +103,17 @@ class MapMaker {
             }
         }
 
-        let argumentKeys = Object.keys(response.arguments);
-        let statementRoles = {}; //a dictionary mapping statement titles to {premiseIn:[nodeId], conclusionIn:[nodeId]} objects
-
-        //1) add all (connected) arguments as argument nodes
+        const argumentKeys = Object.keys(response.arguments);
+        const statementRoles = {}; //a dictionary mapping statement titles to {premiseIn:[nodeId], conclusionIn:[nodeId]} objects
+        const excludedArguments = []; // An array of all argument nodes excluded from the map in the first step
+        //1) add all (connected) arguments as argument nodes (except those that are only connected by conclusion-premise equivalence. Those will be added in the next step)
         //2) add all outgoing relations of each argument to relationsForMap
         //3) add all outgoing relations of each main conclusion to relationsForMap, if the conclusion is not represented by a statement node.
         for (let argumentKey of argumentKeys) {
             let hasRelations = false;
             let argument = response.arguments[argumentKey];
-            let id = "n" + nodeCount;
             nodeCount++;
-            let node = new Node("argument", argument.title, id);
+            let node = this.createNode("argument", argument.title, nodeCount);
             if (this.settings.argumentLabelMode != "title") {
                 const lastMember = _.last(argument.descriptions);
                 if (lastMember) {
@@ -149,14 +147,14 @@ class MapMaker {
                     //argument node has a support relation to statement node
                     hasRelations = true;
                 }
-                if (statement.role == "premise") {
+                if (statement.role === "premise") {
                     roles.premiseIn.push(node);
                     for (let relation of equivalenceClass.relations) {
-                        if (relation.to == equivalenceClass || relation.type == "contradictory") {
+                        if (relation.to == equivalenceClass || relation.type === "contradictory") {
                             hasRelations = true;
                         }
                     }
-                } else if (statement.role == "conclusion" && statement == argument.pcs[argument.pcs.length - 1]) {
+                } else if (statement.role === "conclusion" && statement == _.last(argument.pcs)) {
                     roles.conclusionIn.push(node);
 
                     for (let relation of equivalenceClass.relations) {
@@ -166,11 +164,11 @@ class MapMaker {
                             //if the conclusion has been inserted as a statement node, the outgoing relations have already been added
                             if (
                                 !statementNodes[statement.title] &&
-                                (!relation.type == "contradictory" || !_.includes(relationsForMap, relation))
+                                (!relation.type === "contradictory" || !_.includes(relationsForMap, relation))
                             ) {
                                 relationsForMap.push(relation);
                             }
-                        } else if (relation.type == "contradictory" && !_.includes(relationsForMap, relation)) {
+                        } else if (relation.type === "contradictory" && !_.includes(relationsForMap, relation)) {
                             hasRelations = true;
                             relationsForMap.push(relation);
                         }
@@ -181,6 +179,35 @@ class MapMaker {
             if (!this.settings.excludeDisconnected || hasRelations) {
                 argumentNodes[argumentKey] = node;
                 map.nodes.push(node);
+            } else {
+                excludedArguments.push(node);
+            }
+        }
+
+        // Add arguments to map that are connected by conclusion-premise equivalence
+        // These can only be found by checking
+        // 1) for all main conclusions, if there is an equivalent statement used as premise
+        // 2) for all premises, if there is an equivalent statement used as main conclusion
+        // The latter information is only available after we built a statementRoles dictionary (statement.role only states if the statement is a conclusion, not if it is the main conclusion)
+        for (let node of excludedArguments) {
+            const argument = response.arguments[node.title];
+            const mainConclusion = _.last(argument.pcs);
+            if (argument.pcs) {
+                for (let statement of argument.pcs) {
+                    const roles = statementRoles[statement.title];
+                    if (statement.role === "premise" && roles.conclusionIn && Object.keys(roles.conclusionIn).length > 0) {
+                        argumentNodes[argument.title] = node;
+                        map.nodes.push(node);
+                    } else if (
+                        statement.role === "conclusion" &&
+                        statement === mainConclusion &&
+                        roles.premiseIn &&
+                        Object.keys(roles.premiseIn).length > 0
+                    ) {
+                        argumentNodes[argument.title] = node;
+                        map.nodes.push(node);
+                    }
+                }
             }
         }
 
@@ -303,9 +330,10 @@ class MapMaker {
             }
         }
 
-        //Add support edges to represent equivalence relations between sentences or sentence occurrences
-        //1) From all argument nodes that use p as main conclusion to statement node p
-        //2) From statement node p to all arguments that use p as premise
+        // Add support edges to represent equivalence relations between statement occurrences (between conclusions, premises, statement nodes)
+        // 1) From all argument nodes that use p as main conclusion to statement node p
+        // 2) From statement node p to all arguments that use p as premise
+        // 3) If p is not represented by a statement node: From all argument nodes that use p as main conclusion to all arguments that use p as premise
         for (let node of map.nodes) {
             if (node.type == "statement") {
                 let roles = statementRoles[node.title];
@@ -343,6 +371,33 @@ class MapMaker {
                                 status: "reconstructed"
                             })
                         );
+                    }
+                }
+            } else if (node.type == "argument") {
+                // 3) add support relations between argument nodes
+                const argumentSrc = response.arguments[node.title];
+                const conclusion = argumentSrc.pcs ? _.last(argumentSrc.pcs) : null;
+                if (conclusion && !statementNodes[conclusion.title]) {
+                    const conclusionEquivalenceClass = response.statements[conclusion.title];
+                    // argument is reconstructed and conclusion is not represented by statement node
+                    const roles = statementRoles[conclusion.title];
+                    if (roles && roles.premiseIn) {
+                        // argument +> argument
+                        for (let argumentTargetNode of roles.premiseIn) {
+                            let edgeId = "e" + edgeCount;
+                            edgeCount++;
+                            map.edges.push(
+                                new Edge({
+                                    id: edgeId,
+                                    from: node, //node
+                                    to: argumentTargetNode, //node
+                                    fromStatement: conclusionEquivalenceClass,
+                                    toStatement: conclusionEquivalenceClass,
+                                    type: "support",
+                                    status: "reconstructed"
+                                })
+                            );
+                        }
                     }
                 }
             }
@@ -460,6 +515,10 @@ class MapMaker {
         }
 
         return map;
+    }
+    createNode(nodeType, title, nodeCount) {
+        let id = "n" + nodeCount;
+        return new Node(nodeType, title, id);
     }
 }
 module.exports = {
