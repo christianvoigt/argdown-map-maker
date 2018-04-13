@@ -1,3 +1,9 @@
+## 0.5 (04-13-2018)
+
+### Breaking Changes
+
+*   Removed DotToSvgExport from package, moved it to argdown-cli to keep package size small (Viz.js is huge)
+
 ## 0.4.1 (04-10-2018)
 
 ### Minor Changes
