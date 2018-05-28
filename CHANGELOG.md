@@ -1,3 +1,9 @@
+## 0.5.1 (05-28-2018)
+
+### Bug fixes
+
+* JSON export of map nodes now includes labelText and labelTitle
+ 
 ## 0.5 (04-13-2018)
 
 ### Breaking Changes

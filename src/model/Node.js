@@ -8,7 +8,9 @@ class Node{
     let node = {
       id: this.id,
       title: this.title,
-      type: this.type
+      type: this.type,
+      labelTitle: this.labelTitle,
+      labelText: this.labelText
     }
     return node;
   }
